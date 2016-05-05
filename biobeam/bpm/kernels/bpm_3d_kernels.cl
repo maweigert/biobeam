@@ -203,6 +203,28 @@ __kernel void img_to_buf_intensity(__read_only image2d_t src,
 }
 
 
+__kernel void img_to_img_intensity(__read_only image2d_t src,
+								   __write_only image3d_t dest, const int zPos){
+
+  const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE| CLK_ADDRESS_CLAMP_TO_EDGE|
+  //CLK_FILTER_NEAREST;
+  CLK_FILTER_LINEAR;
+
+  uint i = get_global_id(0);
+  uint j = get_global_id(1);
+  uint Nx = get_global_size(0);
+  uint Ny = get_global_size(1);
+
+  float4 val = read_imagef(src,
+  						   sampler,
+						   (float2)(1.f*i/(Nx-1.f),1.f*j/(Ny-1.f)));
+
+
+  write_imagef(dest, (int4)(i,j,zPos,0),float4(val.x*val.x+val.y*val.y,0.f,0.f,0.f));
+}
+
+
+
 __kernel void buf_to_buf_field(__global cfloat_t *src,
 							   __global cfloat_t *dest, const int offset){
 

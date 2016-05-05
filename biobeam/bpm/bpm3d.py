@@ -8,10 +8,15 @@ mweigert@mpi-cbg.de
 import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device
 from gputools import fft, fft_plan
-from biobeam.psf.psf_functions import psf_u0, psf_cylindrical_u0
 
-import bpm
-from gputools import OCLReductionKernel
+
+#from biobeam.psf.psf_functions import psf_u0, psf_cylindrical_u0
+#from gputools import OCLReductionKernel
+
+
+from bpm import psf_u0, psf_cylindrical_u0
+
+
 
 
 def absPath(myPath):
@@ -43,6 +48,7 @@ class Bpm3d(object):
                  simul_xy = None,
                  simul_z =1,
                  n_volumes = 1,
+                 enforce_subsampled = False,
                  fftplan_kwargs = {}):
         """
 
@@ -80,7 +86,8 @@ class Bpm3d(object):
 
         self._setup(shape = shape, size = size,  lam = lam, n0 = n0,
                     simul_xy = simul_xy,
-                    simul_z = simul_z)
+                    simul_z = simul_z,
+                    enforce_subsampled = enforce_subsampled )
 
         self._setup_dn(dn)
 
@@ -106,7 +113,7 @@ class Bpm3d(object):
 
 
     def _setup(self, shape, size, lam, n0,
-               simul_xy, simul_z):
+               simul_xy, simul_z, enforce_subsampled):
         """
             sets up the internal variables e.g. propagators etc...
 
@@ -131,7 +138,7 @@ class Bpm3d(object):
         #self.dz = 1.*self.size[-1]/self.shape[-1]/self.simul_z
         self.n0 = n0
         self.k0 = 2.*np.pi/self.lam
-        self._is_subsampled = (self.shape[:2] != self.simul_xy) or (simul_z>1)
+        self._is_subsampled = enforce_subsampled or ((self.shape[:2] != self.simul_xy) or (simul_z>1))
 
 
         self._setup_gpu()
@@ -161,6 +168,7 @@ class Bpm3d(object):
 
         self._kernel_im_to_buf_field = prog.img_to_buf_field
         self._kernel_im_to_buf_intensity= prog.img_to_buf_intensity
+        self._kernel_im_to_im_intensity= prog.img_to_img_intensity
         self._kernel_buf_to_buf_field = prog.buf_to_buf_field
         self._kernel_buf_to_buf_intensity = prog.buf_to_buf_intensity
 
@@ -257,7 +265,7 @@ class Bpm3d(object):
     def u0_beam(self, zfoc = None, NA = .3):
         if zfoc is None:
             zfoc = .5*self.size[-1]
-        return bpm.psf_u0(shape = self.simul_xy, units = (self.dx, self.dy),
+        return psf_u0(shape = self.simul_xy, units = (self.dx, self.dy),
                       zfoc = zfoc,NA = NA,
                       lam = self.lam, n0 = self.n0)
 
@@ -265,7 +273,7 @@ class Bpm3d(object):
         if zfoc is None:
             zfoc = .5*self.size[-1]
 
-        return bpm.psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
+        return psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
                       zfoc = zfoc, NA = NA,
                       lam = self.lam, n0 = self.n0)
 
@@ -299,10 +307,6 @@ class Bpm3d(object):
 
         if u0 is None:
             u0 = self.u0_plane()
-
-
-
-
 
 
         Nx, Ny, Nz = self.shape
