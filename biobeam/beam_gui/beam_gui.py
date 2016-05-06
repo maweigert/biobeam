@@ -17,7 +17,7 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from spimagine.gui.mainwidget import MainWidget
-from spimagine import NumpyData, DataModel
+from spimagine import NumpyData, DataModel, read3dTiff
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
 
 import logging
@@ -37,10 +37,10 @@ class BeamGui(QtGui.QWidget):
 
         self.canvas = MainWidget(self)
 
-
+        self.isFullScreen = False
         self.prop_panel = PropPanel()
-        #self.prop_panel.prop_button.clicked.connect(self.propagate)
-        #self.prop_panel._yposChanged.connect(self.on_ypos)
+        self.prop_panel.check_dn.stateChanged.connect(self.view_dn)
+
         self.prop_panel._propChanged.connect(self.on_prop_changed)
 
 
@@ -65,6 +65,14 @@ class BeamGui(QtGui.QWidget):
 
         self.reset_dn(dn, size)
 
+    def view_dn(self):
+        if self.prop_panel.check_dn.checkState():
+            self.canvas.glWidget.renderer.dataImg = self.bpm._im_dn
+            self.canvas.glWidget.refresh()
+        else:
+            self.canvas.glWidget.renderer.dataImg = self.bpm.result_im
+            self.canvas.glWidget.refresh()
+
 
     def reset_dn(self, dn , size, simul_z = 1, simul_xy = None):
 
@@ -82,7 +90,8 @@ class BeamGui(QtGui.QWidget):
         z = np.zeros_like(dn)
         z[0,0,0] = 1.
 
-        self.canvas.setModel(DataModel(NumpyData(z)))
+        units = [s/(n-1.) for s,n in zip(size,dn.shape[::-1])]
+        self.canvas.setModel(DataModel(NumpyData(z, stackUnits=units)))
 
 
 
@@ -119,13 +128,20 @@ class BeamGui(QtGui.QWidget):
 
         self.canvas.glWidget.refresh()
 
+    def mouseDoubleClickEvent(self,event):
+        if self.isFullScreen:
+            self.showNormal()
+        else:
+            self.showFullScreen()
+        self.isFullScreen = not self.isFullScreen
+
+        #self.canvas.mouseDoubleClickEvent(event)
 
 
 
 
 
-
-def test_dn():
+def sphere_dn():
 
     x = np.linspace(-1,1,256)
     Z,Y,X = np.meshgrid(x,x,x)
@@ -137,14 +153,21 @@ def test_dn():
 
 
 if __name__ == '__main__':
+    import sys
 
-    if not "dn" in locals():
+    if len(sys.argv)>1:
+        if sys.argv[1] != "0":
+            dn = read3dTiff(sys.argv[1])
+        else:
+            dn = np.zeros((128,256,256),np.float32)
+            dn[0,0,0]=.01
+    else:
         dn = test_dn()
 
 
     app = QtGui.QApplication(sys.argv)
 
-    win = BeamGui(dn = dn, size = (50,)*3)
+    win = BeamGui(dn = dn, size = (50,50,25))
 
 
     win.show()

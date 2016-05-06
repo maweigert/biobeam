@@ -110,6 +110,9 @@ class Bpm3d(object):
             else:
                 self._buf_dn = OCLArray.from_array(self._copy_arr_with_correct_type(dn))
 
+            #FIXME: this is still stupid
+            if not self.dn is None:
+                self.dn_mean = np.mean(np.real(self.dn),axis=(1,2))
 
 
     def _setup(self, shape, size, lam, n0,
@@ -179,38 +182,44 @@ class Bpm3d(object):
 
         self._fill_propagator(self.n0)
 
-    def _mult_dn(self, buf, zPos):
+    def _mult_dn(self, buf, zPos, dn0 = 0.):
         if (self._is_subsampled and self._im_dn.dtype == Bpm3d._complex_type) or\
             (not self._is_subsampled and self._buf_dn.dtype == Bpm3d._complex_type):
-            self._mult_dn_complex(buf,zPos)
+            self._mult_dn_complex(buf,zPos, dn0)
         else:
-            self._mult_dn_float(buf,zPos)
+            self._mult_dn_float(buf,zPos, dn0)
 
 
-    def _mult_dn_float(self, buf, zPos):
+    def _mult_dn_float(self, buf, zPos, dn0):
         if self._is_subsampled:
             self._kernel_mult_dn_img_float(self._queue, self.simul_xy, None,
                                     buf.data,self._im_dn,
                                     np.float32(self.k0*self.dz),
-                                    np.float32(zPos/(self.shape[-1]-1.)))
+                                           np.float32(dn0),
+                                    np.float32(zPos/(self.shape[-1]-1.))
+                                           )
         else:
             Nx, Ny = self.shape[:2]
             self._kernel_mult_dn_buf_float(self._queue, self.shape[:2], None,
                                     buf.data,self._buf_dn.data,
                                     np.float32(self.k0*self.dz),
+                                           np.float32(dn0),
                                     np.int32(zPos*Nx*Ny))
 
-    def _mult_dn_complex(self, buf, zPos):
+    def _mult_dn_complex(self, buf, zPos, dn0):
         if self._is_subsampled:
             self._kernel_mult_dn_img_complex(self._queue, self.simul_xy, None,
                                     buf.data,self._im_dn,
                                     np.float32(self.k0*self.dz),
+                                             np.float32(dn0),
                                     np.float32(zPos/(self.shape[-1]-1.)))
+
         else:
             Nx, Ny = self.shape[:2]
             self._kernel_mult_dn_buf_complex(self._queue, self.shape[:2], None,
                                     buf.data,self._buf_dn.data,
                                     np.float32(self.k0*self.dz),
+                                             np.float32(dn0),
                                     np.int32(zPos*Nx*Ny))
 
     def _copy_down_img(self,im,buf,offset):
@@ -327,14 +336,22 @@ class Bpm3d(object):
             else:
                 self._copy_down_buf(self._buf_plane,u,0)
 
+
+
+        dn0 = 0
         for i in xrange(Nz-1-offset):
+            if not self.dn is None and not free_prop:
+                if self.dn_mean[i+offset] != dn0:
+                    dn0 = self.dn_mean[i+offset]
+                    self._fill_propagator(self.n0+dn0)
+
             for j in xrange(self.simul_z):
 
                 fft(self._buf_plane, inplace = True, plan  = self._plan)
                 self._mult_complex(self._buf_plane, self._buf_H)
                 fft(self._buf_plane, inplace = True, inverse = True, plan  = self._plan)
                 if not free_prop:
-                    self._mult_dn(self._buf_plane,(i+offset+(j+1.)/self.simul_z))
+                    self._mult_dn(self._buf_plane,(i+offset+(j+1.)/self.simul_z),dn0)
 
             if return_shape=="full":
                 if self._is_subsampled and self.simul_xy!=self.shape[:2]:
@@ -347,6 +364,35 @@ class Bpm3d(object):
             return u.get()
         else:
             return self._buf_plane
+
+    def _aberr_from_field(self,u0,NA, n_zern = 20):
+        from phasediv import aberr_from_field, PhaseDiv2
+        if not hasattr(self,"_PD2"):
+            self._PD2 = PhaseDiv2(self.simul_xy,(self.dx,self.dy), NA = NA, n=self.n0)
+            self._NA = NA
+        assert self._NA ==NA
+        return aberr_from_field(u0,units=(self.dx,self.dy),
+                                lam = self.lam,NA=NA,n=self.n0,
+                                pd_obj = self._PD2,
+                                n_zern = n_zern)
+
+    def aberr_at(self,NA = .4, center = (0,0,0), n_zern = 20):
+        """c = (cx,cy,cz) in realtive pixel coordinates wrt the center"""
+
+
+        cx,cy,cz = center
+
+        offset = self.shape[-1]/2+1+cz
+
+
+        u0 = np.roll(np.roll(self.u0_beam(zfoc = 0.,NA=NA),cy,0),cx,1)
+
+        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last").get()
+
+        u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
+                                 offset=offset, return_shape="last").get()
+
+        return self._aberr_from_field(u_back,NA=NA)
 
 
     def __repr__(self):
