@@ -402,7 +402,7 @@ class Bpm3d(object):
 
         u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
                                  offset=offset, return_shape="last").get()
-
+        u_back = np.roll(np.roll(u_back,-cy,0),-cx,1)
         return self._aberr_from_field(u_back,NA=NA)
 
 
