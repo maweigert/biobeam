@@ -6,6 +6,7 @@ mweigert@mpi-cbg.de
 """
 
 from PyQt4 import  QtGui, QtCore
+from spimagine.gui.gui_utils import createStandardCheckbox
 
 
 class MyEdit(QtGui.QTextEdit):
@@ -39,24 +40,16 @@ class PropPanel(QtGui.QWidget):
 
 
         lab = QtGui.QLabel("properties")
-        #self.prop_button = QtGui.QPushButton("propagate",self)
 
-        #self.prop_button.setStyleSheet("background-color: black;color:white;")
-
-
-        # self.edit_ypos = QtGui.QLineEdit("1")
-        # self.edit_ypos .setValidator(QtGui.QIntValidator())
-        # self.edit_ypos.returnPressed.connect(lambda :self._yposChanged.emit(int(self.edit_ypos.text())))
-
+        self.check_dn = createStandardCheckbox(self)
 
         self.edit = MyEdit("1")
 
         self.edit.returnPressed.connect(lambda :self._propChanged.emit(self.edit.toPlainText()))
 
         vbox.addWidget(lab)
-        #vbox.addWidget(self.edit_ypos)
+        vbox.addWidget(self.check_dn)
         vbox.addWidget(self.edit)
-        #vbox.addWidget(self.prop_button)
         vbox.addStretch()
         self.setLayout(vbox)
 
