@@ -220,7 +220,7 @@ __kernel void img_to_img_intensity(__read_only image2d_t src,
 						   (float2)(1.f*i/(Nx-1.f),1.f*j/(Ny-1.f)));
 
 
-  write_imagef(dest, (int4)(i,j,zPos,0),float4(val.x*val.x+val.y*val.y,0.f,0.f,0.f));
+  write_imagef(dest, (int4)(i,j,zPos,0),(float4)(val.x*val.x+val.y*val.y,0.f,0.f,0.f));
 }
 
 

@@ -73,7 +73,7 @@ class BeamGui(QtGui.QWidget):
             simul_xy = dn.shape[1:][::-1]
 
         simul_z = 2
-        simul_xy = (512,)*2
+        simul_xy = (1024,)*2
 
         self.bpm = Bpm3d_img(size = size, dn = dn,
                              lam = .5,
@@ -113,6 +113,7 @@ class BeamGui(QtGui.QWidget):
             u0  = None
 
         if not u0 is None:
+            u0 *= 1./np.sqrt(np.mean(np.abs(u0)**2))
             u0 = np.roll(u0,self.properties["ypos"],0)
 
         self.bpm._propagate_to_img(u0 =  u0,im = im)
@@ -127,7 +128,7 @@ class BeamGui(QtGui.QWidget):
 
 def test_dn():
 
-    x = np.linspace(-1,1,256)
+    x = np.linspace(-1,1,512)
     Z,Y,X = np.meshgrid(x,x,x)
     R = np.sqrt(Z**2+Y**2+X**2)
 
@@ -144,7 +145,7 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    win = BeamGui(dn = dn, size = (50,)*3)
+    win = BeamGui(dn = dn, size = (200,)*3)
 
 
     win.show()
