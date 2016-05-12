@@ -288,27 +288,31 @@ class Bpm3d(object):
 
 
 
-    def _propagate(self, u0 = None, offset = 0, **kwargs):
+    def _propagate(self, u0 = None, offset = 0,
+                   return_comp = "field",
+                   return_shape = "full",
+                   free_prop = False,
+                   **kwargs):
         """
 
         kwargs:
-            return_result in ["field", "intens"]
+            return_comp in ["field", "intens"]
             return_shape in ["last", "full"]
             free_prop = False|True
         """
 
-        return_val = kwargs.pop("return_result","field")
-        return_shape = kwargs.pop("return_shape","full")
-        free_prop = kwargs.pop("free_prop",False)
+        # return_val = kwargs.pop("return_result","field")
+        # return_shape = kwargs.pop("return_shape","full")
+        # free_prop = kwargs.pop("free_prop",False)
 
         free_prop = free_prop or (self.dn is None)
 
-        if return_val=="field":
+        if return_comp=="field":
             res_type = Bpm3d._complex_type
-        elif return_val=="intens":
+        elif return_comp=="intens":
             res_type = Bpm3d._real_type
         else:
-            raise ValueError()
+            raise ValueError(return_comp)
 
         if not return_shape in ["last", "full"]:
             raise ValueError()
@@ -366,14 +370,21 @@ class Bpm3d(object):
             return self._buf_plane
 
     def _aberr_from_field(self,u0,NA, n_zern = 20):
+        """assume NA is the same"""
         from phasediv import aberr_from_field, PhaseDiv2
-        if not hasattr(self,"_PD2"):
+        if not hasattr(self,"_PD2") or self._PD2.NA != NA:
             self._PD2 = PhaseDiv2(self.simul_xy,(self.dx,self.dy), NA = NA, n=self.n0)
             self._NA = NA
         assert self._NA ==NA
         return aberr_from_field(u0,units=(self.dx,self.dy),
                                 lam = self.lam,NA=NA,n=self.n0,
                                 pd_obj = self._PD2,
+                                n_zern = n_zern)
+
+    def _aberr_from_field_NA(self,u0,NA, n_zern = 20):
+        from phasediv import aberr_from_field
+        return aberr_from_field(u0,units=(self.dx,self.dy),
+                                lam = self.lam,NA=NA,n=self.n0,
                                 n_zern = n_zern)
 
     def aberr_at(self,NA = .4, center = (0,0,0), n_zern = 20):
@@ -397,6 +408,8 @@ class Bpm3d(object):
 
     def __repr__(self):
         return "Bpm3d class \nsize: \t%s\nshape:\t %s\nresolution: (%.4f,%.4f,%.4f)  "%(self.size,self.shape,self.dx,self.dy,self.dz)
+
+
 
 
 if __name__ == '__main__':

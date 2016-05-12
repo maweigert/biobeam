@@ -162,7 +162,7 @@ if __name__ == '__main__':
             dn = np.zeros((128,256,256),np.float32)
             dn[0,0,0]=.01
     else:
-        dn = test_dn()
+        dn = sphere_dn()
 
 
     app = QtGui.QApplication(sys.argv)
