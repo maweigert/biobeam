@@ -30,7 +30,7 @@ from prop_panel import PropPanel
 
 class BeamGui(QtGui.QWidget):
 
-    def __init__(self, dn, size, parent = None):
+    def __init__(self, dn, size, simul_xy = None, simul_z = None, parent = None):
         super(BeamGui,self).__init__(parent)
 
         self.myparent = parent
@@ -63,7 +63,7 @@ class BeamGui(QtGui.QWidget):
 
         self.prop_panel.edit.setText(str(self.properties))
 
-        self.reset_dn(dn, size)
+        self.reset_dn(dn, size, simul_xy = simul_xy, simul_z = simul_z)
 
     def view_dn(self):
         if self.prop_panel.check_dn.checkState():
@@ -74,9 +74,10 @@ class BeamGui(QtGui.QWidget):
             self.canvas.glWidget.refresh()
 
 
-    def reset_dn(self, dn , size, simul_z = 1, simul_xy = None):
+    def reset_dn(self, dn , size, simul_z = None, simul_xy = None):
 
-
+        if simul_z is None:
+            simul_z = 1
         if simul_xy is None:
             simul_xy = dn.shape[1:][::-1]
 
