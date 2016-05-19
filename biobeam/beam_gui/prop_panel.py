@@ -43,12 +43,16 @@ class PropPanel(QtGui.QWidget):
 
         self.check_dn = createStandardCheckbox(self)
 
+        self.disp_dn = createStandardCheckbox(self)
+
         self.edit = MyEdit("1")
 
         self.edit.returnPressed.connect(lambda :self._propChanged.emit(self.edit.toPlainText()))
 
         vbox.addWidget(lab)
         vbox.addWidget(self.check_dn)
+        vbox.addWidget(self.disp_dn)
+
         vbox.addWidget(self.edit)
         vbox.addStretch()
         self.setLayout(vbox)
