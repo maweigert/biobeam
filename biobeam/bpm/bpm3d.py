@@ -40,8 +40,9 @@ class Bpm3d(object):
     _real_type = np.float32
     _complex_type = np.complex64
 
-    def __init__(self, size,
+    def __init__(self, size = None,
                  shape = None,
+                 units = None,
                  dn = None,
                  lam = .5,
                  n0 = 1.,
@@ -72,6 +73,12 @@ class Bpm3d(object):
             raise ValueError("either shape or dn have to be given!")
         if not(shape is None or dn is None) and dn.shape != shape[::-1]:
             raise ValueError("shape != dn.shape")
+        if not (size is None or units is None):
+            raise ValueError("either give size or units but not both!")
+
+        if not units is None:
+            size = [(s-1.)*u for s, u in zip(shape, units)]
+
 
         if shape is None:
             shape = dn.shape[::-1]
@@ -183,7 +190,7 @@ class Bpm3d(object):
         self._fill_propagator(self.n0)
 
     def _mult_dn(self, buf, zPos, dn0 = 0.):
-        if (self._is_subsampled and self._im_dn.dtype == Bpm3d._complex_type) or\
+        if (self._is_subsampled and self.dn.dtype == Bpm3d._complex_type) or\
             (not self._is_subsampled and self._buf_dn.dtype == Bpm3d._complex_type):
             self._mult_dn_complex(buf,zPos, dn0)
         else:
@@ -271,20 +278,27 @@ class Bpm3d(object):
         return np.exp(1.j*phi)*np.ones(self.simul_xy[::-1],np.complex64)
 
 
-    def u0_beam(self, zfoc = None, NA = .3):
+    def u0_beam(self, center = (0,0),zfoc = None, NA = .3, n_integration_steps = 200):
         if zfoc is None:
             zfoc = .5*self.size[-1]
-        return psf_u0(shape = self.simul_xy, units = (self.dx, self.dy),
+
+
+        u0 =  psf_u0(shape = self.simul_xy, units = (self.dx, self.dy),
                       zfoc = zfoc,NA = NA,
-                      lam = self.lam, n0 = self.n0)
+                      lam = self.lam, n0 = self.n0,
+                     n_integration_steps=n_integration_steps)
+        cx,cy = center
+        return np.roll(np.roll(u0,cy,0),cx,1)
 
-    def u0_cylindrical(self, zfoc =None ,  NA = .3):
+    def u0_cylindrical(self, center = (0,0),zfoc =None ,  NA = .3):
         if zfoc is None:
             zfoc = .5*self.size[-1]
 
-        return psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
+        u0 = psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
                       zfoc = zfoc, NA = NA,
                       lam = self.lam, n0 = self.n0)
+        cx,cy = center
+        return np.roll(np.roll(u0,cy,0),cx,1)
 
 
 
@@ -292,6 +306,7 @@ class Bpm3d(object):
                    return_comp = "field",
                    return_shape = "full",
                    free_prop = False,
+                   slow_mean = False,
                    **kwargs):
         """
 
@@ -345,9 +360,27 @@ class Bpm3d(object):
         dn0 = 0
         for i in xrange(Nz-1-offset):
             if not self.dn is None and not free_prop:
-                if self.dn_mean[i+offset] != dn0:
-                    dn0 = self.dn_mean[i+offset]
-                    self._fill_propagator(self.n0+dn0)
+                if slow_mean:
+                    if return_shape=="full":
+                        raise NotImplementedError()
+                    else:
+                        tmp = OCLArray.empty((1,Ny,Nx),dtype=res_type)
+                        if self._is_subsampled:
+                            self._img_xy.copy_buffer(self._buf_plane)
+                            self._copy_down_img(self._img_xy,tmp,0)
+                        else:
+                            self._copy_down_buf(self._buf_plane,tmp,0)
+
+                        dn0 = np.sum(np.abs(self.dn[i])*tmp.get())/np.sum(np.abs(self.dn[i])+1.e-10)
+                        print dn0
+                        self._fill_propagator(self.n0+dn0)
+                else:
+                    if self.dn_mean[i+offset] != dn0:
+                        dn0 = self.dn_mean[i+offset]
+                        self._fill_propagator(self.n0+dn0)
+
+
+
 
             for j in xrange(self.simul_z):
 
@@ -373,7 +406,7 @@ class Bpm3d(object):
         """assume NA is the same"""
         from phasediv import aberr_from_field, PhaseDiv2
         if not hasattr(self,"_PD2") or self._PD2.NA != NA:
-            self._PD2 = PhaseDiv2(self.simul_xy,(self.dx,self.dy), NA = NA, n=self.n0)
+            self._PD2 = PhaseDiv2(self.simul_xy[::-1],(self.dy,self.dx), NA = NA, n=self.n0)
             self._NA = NA
         assert self._NA ==NA
         return aberr_from_field(u0,units=(self.dx,self.dy),
@@ -383,12 +416,16 @@ class Bpm3d(object):
 
     def _aberr_from_field_NA(self,u0,NA, n_zern = 20):
         from phasediv import aberr_from_field
-        return aberr_from_field(u0,units=(self.dx,self.dy),
+        return aberr_from_field(u0,units=(self.dy,self.dx),
                                 lam = self.lam,NA=NA,n=self.n0,
                                 n_zern = n_zern)
 
-    def aberr_at(self,NA = .4, center = (0,0,0), n_zern = 20):
-        """c = (cx,cy,cz) in realtive pixel coordinates wrt the center"""
+    def aberr_at(self,NA = .4, center = (0,0,0), n_zern = 20,
+                 n_integration_steps = 200):
+        """c = (cx,cy,cz) in realtive pixel coordinates wrt the center
+
+        returns phi, zern
+        """
 
 
         cx,cy,cz = center
@@ -396,14 +433,81 @@ class Bpm3d(object):
         offset = self.shape[-1]/2+1+cz
 
 
-        u0 = np.roll(np.roll(self.u0_beam(zfoc = 0.,NA=NA),cy,0),cx,1)
+        u0 = np.roll(np.roll(self.u0_beam(zfoc = 0.,NA=NA,
+                                          n_integration_steps = n_integration_steps),cy,0),cx,1)
 
         u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last").get()
 
         u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
                                  offset=offset, return_shape="last").get()
         u_back = np.roll(np.roll(u_back,-cy,0),-cx,1)
+
+        self._u_back = u_back
         return self._aberr_from_field(u_back,NA=NA)
+
+
+    def aberr_field_grid(self,NA , cxs, cys , cz, n_zern = 20,
+                 n_integration_steps = 200):
+        """
+        cxs, cys are equally spaced 1d arrays defining the grid
+        """
+
+
+        CYs, CXs = np.meshgrid(cys,cxs,indexing = "ij")
+        CYs, CXs = CYs.flatten(),CXs.flatten()
+
+        Npad = int(np.floor(min(abs(cxs[1]-cxs[0]),abs(cys[1]-cys[0]))/32)*16)
+        assert Npad>1
+
+        Nslice0 = (slice(self.simul_xy[1]/2-Npad,self.simul_xy[1]/2+Npad),
+                  slice(self.simul_xy[0]/2-Npad,self.simul_xy[0]/2+Npad))
+
+        Nslices = [(slice(self.simul_xy[1]/2-Npad+cy,self.simul_xy[1]/2+Npad+cy),
+                  slice(self.simul_xy[0]/2-Npad+cx,self.simul_xy[0]/2+Npad+cx)) for cx,cy in zip(CXs,CYs)]
+
+        offset = self.shape[-1]/2+1+cz
+
+        u0_single = self.u0_beam(zfoc = 0.,NA=NA,
+                                          n_integration_steps = n_integration_steps)
+
+        u0 = np.zeros_like(u0_single)
+        for cx,cy, nslice in zip(CXs,CYs, Nslices):
+            u0[nslice] += u0_single[Nslice0]
+
+        #u0 = reduce(np.add,[np.roll(np.roll(u0_single,cy,0),cx,1) for cx,cy in zip(Xs,Ys)])
+
+        print "propagation"
+        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last").get()
+
+        u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
+                                 offset=offset, return_shape="last").get()
+
+        self._u_back = u_back
+
+        # get the phases
+
+
+        us = [u_back[nslice] for nslice in Nslices]
+
+        print "setup"
+        from phasediv import aberr_from_field, PhaseDiv2
+        self._PD2_pad = PhaseDiv2(us[0].shape,(self.dy,self.dx), NA = NA, n=self.n0)
+
+
+
+
+        phis = []
+        zerns = []
+        print "getting aberrations"
+        for i,u0 in enumerate(us):
+            print "%s/%s"%(i+1,len(us))
+            p,z = aberr_from_field(u0,units=(self.dx,self.dy),
+                                lam = self.lam,NA=NA,n=self.n0,
+                                pd_obj = self._PD2_pad,
+                                n_zern = n_zern)
+            phis.append(p)
+            zerns.append(z)
+        return np.array(phis),np.array(zerns)
 
 
     def __repr__(self):
@@ -418,69 +522,18 @@ if __name__ == '__main__':
 
     shape = (256,256,256)
     size = (40,40,40)
-    #size = (200,200,200)
+    shape = (512,256,256)
+    size = (80.16,40,40)
+    #shape = (256,512,256)
+    # size = (40,80,40)
 
-
-    #
-    # m1 = Bpm3d(shape = shape, size = size, simul_z=2,fftplan_kwargs={"fast_math":True})#simul_z = 1, simul_xy=(512,512))
-    # u1 = m1._propagate(m1.u0_beam(NA = .4))
-    # m2 = Bpm3d(shape = shape, size = size,simul_z = 2, fftplan_kwargs={"fast_math":False})#, simul_xy=(512,512))
-    # u2 = m2._propagate(m2.u0_beam(NA = .4))
-
-
-    # m1 = Bpm3d(shape = shape, size = size, fftplan_kwargs={"fast_math":False})#simul_z = 1, simul_xy=(512,512))
-    # m1._buf_plane.write_array(m1.u0_beam(NA = .3))
-    #
-    # m2 = Bpm3d(shape = shape, size = size)#simul_z = 1, simul_xy=(512,512))
-    # m2._buf_plane.write_array(m2.u0_beam(NA = .3))
-    # m2.dz *= 2
-    # m2._fill_propagator(1.)
-    #
-    # #m1._buf_plane.write_array(m1.u0_plane())
-    # for i in range(100):
-    #     fft(m1._buf_plane, inplace = True, plan  = m1._plan)
-    #     #m1._mult_complex(m1._buf_plane, m1._buf_H)
-    #     fft(m1._buf_plane, inplace = True, inverse = True, plan  = m1._plan)
-    #     # fft(m1._buf_plane, inplace = True, plan  = m1._plan)
-    #     # #m1._mult_complex(m1._buf_plane, m1._buf_H)
-    #     # fft(m1._buf_plane, inplace = True, inverse = True, plan  = m1._plan)
-    #     #
-    #     a1 = m1._buf_plane.get()
-    #     print np.amax(np.abs(a1-m1.u0_beam(NA = .3)))/np.amax(abs(a1))
-    #
-    #     # fft(m2._buf_plane, inplace = True, plan  = m2._plan)
-    #     # #m2._mult_complex(m2._buf_plane, m2._buf_H)
-    #     # fft(m2._buf_plane, inplace = True, inverse = True, plan  = m2._plan)
-    #     #
-    #     # a2 = m2._buf_plane.get()
-    #     #
-    #     # print np.amax(np.abs(a1-a2))/np.amax(abs(a1))
-    #
     if not "dn" in locals():
         xs = [np.linspace(-.5*s,.5*s,N) for s,N in zip(size,shape)]
         Xs = np.meshgrid(*xs[::-1],indexing="ij")
         R = np.sqrt(reduce(np.add,[_X**2 for _X in Xs]))
-        dn = (.1-.001j)*(R<size[0]/4)
-        #dn *= 0
-        import gputools
-        dn += .002*gputools.perlin3(shape, units = (1.9,)*3)
-        #dn -= .001j*np.abs(gputools.perlin3(shape, units = (.3,.3,.3)))
-        # dn = .07*gputools.perlin3(shape, units = (.2,.2,.2))
+        dn = (.1-.001j)*(R<size[-1]/5)
 
-    # # m = Bpm3d(size = size, dn = dn,simul_z = 1, simul_xy=(512,512))
-    # #
-    # #
-    # # # m = Bpm3d(size = size, dn = dn,simul_z = 2, simul_xy=(1024,)*2)
-    # #
-    # #
-    # # t = time()
-    # #
-    # # #u = m._propagate( return_val="intens")
-    # # #u = m._propagate(m.u0_beam(NA = .4), return_result="intens")
-    # # u = m._propagate(m.u0_beam(NA = .4), return_result = "intens")
-    # # #u = m._propagate(np.roll(m.u0_cylindrical(NA = .2),50,0), return_result = "intens")
-    # #
-    # #
-    # # print time()-t
-    # #
-    # #
+    m = Bpm3d(size = size, dn = dn)
+
+
+    phi, zern = m.aberr_at(center = (0,0,0))

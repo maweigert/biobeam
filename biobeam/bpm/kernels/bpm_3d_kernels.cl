@@ -152,9 +152,10 @@ __kernel void compute_propagator(__global cfloat_t* H,
   float root = (tmp>=0.f)?sqrt(tmp):sqrt(-tmp);
   //float h0 = (tmp<0.f)?0.f:sqrt(tmp);
 
-  cfloat_t h = (tmp>=0.f)?cfloat_new(cos(-dz*root),sin(-dz*root)):cfloat_new(exp(-dz*root),0.f);
-  
-  //H[i+Nx*j] = cfloat_new((float)(tmp>=0.f)*cos(-dz*h0),(float)(tmp>=0.f)*sin(-dz*h0));
+  //cfloat_t h = (tmp>=0.f)?cfloat_new(cos(-dz*root),sin(-dz*root)):cfloat_new(exp(-dz*root),0.f);
+
+  cfloat_t h = (tmp>=0.f)?cfloat_new(cos(dz*root),sin(dz*root)):cfloat_new(exp(-dz*root),0.f);
+
 
   H[i+Nx*j] = h;
 }

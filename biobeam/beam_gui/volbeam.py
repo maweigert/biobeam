@@ -30,11 +30,20 @@ def getCurrentApp():
     return _MAIN_APP
 
 
-def volbeam(dn,size,
+def volbeam(dn = None,size = None,
             simul_xy  = None,
             simul_z = None,
             blocking = False,
             raise_window = True):
+
+
+    if dn is None and size is None:
+        dn = np.zeros((256,)*3,np.float32)
+        dn[0,0,0] = 0.0000001
+        size = (200,)*3
+        simul_xy = (512,)*2
+        simul_z = 2
+
 
     app = getCurrentApp()
 
