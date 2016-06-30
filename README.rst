@@ -1,4 +1,4 @@
 biobeam
 =======
 
-Please see the `full documentation<https://maweigert.github.io/biobeam/>`_.
+Please see the `full documentation <https://maweigert.github.io/biobeam/>`_ .
