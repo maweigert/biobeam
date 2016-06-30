@@ -1,4 +1,4 @@
 biobeam
 =======
 
-A super useful tool
+Please see the `full documentation<https://maweigert.github.io/biobeam/>`_.
