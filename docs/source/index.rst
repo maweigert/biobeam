@@ -19,6 +19,7 @@ This is something I want to say that is not in the docstring.
    :hidden:
    :maxdepth: 2
 
+   includeme
    intro
    installing
    basic
