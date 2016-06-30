@@ -1,0 +1,25 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}
+\contentsline {chapter}{\numberline {2}Installation}{5}{chapter.2}
+\contentsline {chapter}{\numberline {3}Basic Usage}{7}{chapter.3}
+\contentsline {section}{\numberline {3.1}Beam propagation}{7}{section.3.1}
+\contentsline {paragraph}{Example}{7}{paragraph*.7}
+\contentsline {chapter}{\numberline {4}Input Beam patterns}{9}{chapter.4}
+\contentsline {section}{\numberline {4.1}Gaussian/Bessel beams}{9}{section.4.1}
+\contentsline {paragraph}{Example}{10}{paragraph*.15}
+\contentsline {paragraph}{References}{10}{paragraph*.16}
+\contentsline {paragraph}{Example}{11}{paragraph*.18}
+\contentsline {section}{\numberline {4.2}Cylindrical Lens}{11}{section.4.2}
+\contentsline {paragraph}{Example}{12}{paragraph*.20}
+\contentsline {paragraph}{References}{12}{paragraph*.21}
+\contentsline {paragraph}{Example}{12}{paragraph*.23}
+\contentsline {section}{\numberline {4.3}Bessel Lattices}{13}{section.4.3}
+\contentsline {paragraph}{Example}{14}{paragraph*.25}
+\contentsline {paragraph}{References}{14}{paragraph*.26}
+\contentsline {chapter}{\numberline {5}Examples}{15}{chapter.5}
+\contentsline {section}{\numberline {5.1}Plane wave scattered by sphere}{15}{section.5.1}
+\contentsline {section}{\numberline {5.2}Light sheet through cell phantom}{15}{section.5.2}
+\contentsline {section}{\numberline {5.3}Computing the psf inside a cell phantom}{15}{section.5.3}
+\contentsline {section}{\numberline {5.4}Aberration from sphere}{15}{section.5.4}
+\contentsline {chapter}{\numberline {6}Some Examples}{17}{chapter.6}
+\contentsline {chapter}{Index}{19}{section*.28}

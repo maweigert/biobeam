@@ -1,0 +1,400 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Input Beam patterns &mdash; biobeam 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="biobeam 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Basic Usage" href="basic.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="input-beam-patterns">
+<h1><a class="toc-backref" href="#id7">Input Beam patterns</a><a class="headerlink" href="#input-beam-patterns" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#input-beam-patterns" id="id7">Input Beam patterns</a><ul>
+<li><a class="reference internal" href="#gaussian-bessel-beams" id="id8">Gaussian/Bessel beams</a></li>
+<li><a class="reference internal" href="#cylindrical-lens" id="id9">Cylindrical Lens</a></li>
+<li><a class="reference internal" href="#bessel-lattices" id="id10">Bessel Lattices</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="gaussian-bessel-beams">
+<h2><a class="toc-backref" href="#id8">Gaussian/Bessel beams</a><a class="headerlink" href="#gaussian-bessel-beams" title="Permalink to this headline">¶</a></h2>
+<p><strong>Gaussian/Bessel beams</strong></p>
+<a class="reference internal image-reference" href="_images/pupil_gauss.png"><img alt="_images/pupil_gauss.png" class="align-left" src="_images/pupil_gauss.png" style="width: 200px;" /></a>
+<a class="reference internal image-reference" href="_images/pupil_bessel.png"><img alt="_images/pupil_bessel.png" class="align-right" src="_images/pupil_bessel.png" style="width: 200px;" /></a>
+<dl class="function">
+<dt id="biobeam.focus_field_beam">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_beam</code><span class="sig-paren">(</span><em>shape</em>, <em>units</em>, <em>lam=0.5</em>, <em>NA=0.6</em>, <em>n0=1.0</em>, <em>return_all_fields=False</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the focus field for a perfect, aberration free optical system for
+x polzarized illumination via the vectorial debye diffraction integral (see <a class="footnote-reference" href="#id2" id="id1">[1]</a>).
+The pupil function is given by numerical aperture(s) NA (that can be a list to
+model bessel beams, see further below)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>Nx,Ny,Nz</em>) &#8211; the shape of the geometry</li>
+<li><strong>units</strong> (<em>dx,dy,dz</em>) &#8211; the pixel sizes in microns</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength of light used in microns</li>
+<li><strong>NA</strong> (<em>float/list</em>) &#8211; the numerical aperture(s) of the illumination objective
+that is either a single number (for gaussian beams) or an
+even length list of NAs (for bessel beams), e.g.
+<cite>NA = [0.5,0.55]</cite> lets light through the annulus 0.5&lt;0.55 (making a bessel beam ) or
+<cite>NA = [0.1,0.2,0.5,0.6]</cite> lets light through the annulus 0.1&lt;0.2 and 0.5&lt;0.6 making a
+beating double bessel beam...</li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the medium</li>
+<li><strong>n_integration_steps</strong> (<em>int</em>) &#8211; number of integration steps to perform</li>
+<li><strong>return_all_fields</strong> (<em>boolean</em>) &#8211; if True returns also the complex vectorial field components</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>u</strong> (<em>ndarray</em>) &#8211;
+the intensity of the focus field</li>
+<li><strong>(u,ex,ey,ez)</strong> (<em>list(ndarray)</em>) &#8211;
+the intensity of the focus field and the complex field components (if return_all_fields is True)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">focus_field_beam</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="o">.</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Matthew R. Foreman, Peter Toeroek, <em>Computational methods in vectorial imaging</em>, Journal of Modern Optics, 2011, 58, 5-6, 339</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="biobeam.focus_field_beam_plane">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_beam_plane</code><span class="sig-paren">(</span><em>shape=(128</em>, <em>128)</em>, <em>units=(0.1</em>, <em>0.1)</em>, <em>z=0.0</em>, <em>lam=0.5</em>, <em>NA=0.6</em>, <em>n0=1.0</em>, <em>ex_g=None</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_beam_plane" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the complex 2d input field at position -z of a      perfect, aberration free optical system</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>Nx,Ny</em>) &#8211; the 2d shape of the geometry</li>
+<li><strong>units</strong> (<em>dx,dy</em>) &#8211; the pixel sizes in microns</li>
+<li><strong>z</strong> (<em>float</em>) &#8211; defocus position in microns, such that the beam would focus at z
+e.g. an input field with z = 10. would hav its focus spot after 10 microns</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength of light used in microns</li>
+<li><strong>NA</strong> (<em>float/list</em>) &#8211; the numerical aperture(s) of the illumination objective
+that is either a single number (for gaussian beams) or an
+even length list of NAs (for bessel beams), e.g.
+NA = [0.5,0.55] lets light through the annulus 0.5&lt;0.55 (making a bessel beam ) or
+NA = [0.1,0.2,0.5,0.6] lets light through the annulus 0.1&lt;0.2 and 0.5&lt;0.6 making a
+beating double bessel beam...</li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the medium</li>
+<li><strong>n_integration_steps</strong> (<em>int</em>) &#8211; number of integration steps to perform</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ex</strong> &#8211;
+the complex field</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># the input pattern of a bessel beam that will focus after 4 microns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span> <span class="o">=</span> <span class="n">focus_field_beam_plane</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#biobeam.focus_field_beam" title="biobeam.focus_field_beam"><code class="xref py py-func docutils literal"><span class="pre">biobeam.focus_field_beam()</span></code></a></dt>
+<dd>the 3d function</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="cylindrical-lens">
+<h2><a class="toc-backref" href="#id9">Cylindrical Lens</a><a class="headerlink" href="#cylindrical-lens" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/pupil_cylinder.png"><img alt="_images/pupil_cylinder.png" class="align-center" src="_images/pupil_cylinder.png" style="width: 200px;" /></a>
+<dl class="function">
+<dt id="biobeam.focus_field_cylindrical">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_cylindrical</code><span class="sig-paren">(</span><em>shape</em>, <em>units</em>, <em>lam=0.5</em>, <em>NA=0.3</em>, <em>n0=1.0</em>, <em>return_all_field=False</em>, <em>n_integration_steps=100</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_cylindrical" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the focus field for a perfect, aberration free cylindrical lens after
+x polarized illumination via the vectorial debye diffraction integral (see <a class="footnote-reference" href="#id4" id="id3">[2]</a>).
+The pupil function is given by the numerical aperture NA</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>Nx,Ny,Nz</em>) &#8211; the shape of the geometry</li>
+<li><strong>units</strong> (<em>dx,dy,dz</em>) &#8211; the pixel sizes in microns</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength of light used in microns</li>
+<li><strong>NA</strong> (<em>float</em>) &#8211; the numerical aperture of the lens</li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the medium</li>
+<li><strong>return_all_fields</strong> (<em>boolean</em>) &#8211; if True, returns u,ex,ey,ez where ex/ey/ez are the complex field components</li>
+<li><strong>n_integration_steps</strong> (<em>int</em>) &#8211; number of integration steps to perform</li>
+<li><strong>return_all_fields</strong> &#8211; if True returns also the complex vectorial field components</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>u</strong> (<em>ndarray</em>) &#8211;
+the intensity of the focus field</li>
+<li><strong>(u,ex,ey,ez)</strong> (<em>list(ndarray)</em>) &#8211;
+the intensity of the focus field and the complex field components (if return_all_fields is True)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ez</span> <span class="o">=</span> <span class="n">focus_field_cylindrical</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="n">return_all_field</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>Colin J. R. Sheppard: Cylindrical lenses—focusing and imaging: a review, Appl. Opt. 52, 538-545 (2013)</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="biobeam.focus_field_cylindrical_plane">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_cylindrical_plane</code><span class="sig-paren">(</span><em>shape=(128</em>, <em>128)</em>, <em>units=(0.1</em>, <em>0.1)</em>, <em>z=0.0</em>, <em>lam=0.5</em>, <em>NA=0.6</em>, <em>n0=1.0</em>, <em>ex_g=None</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_cylindrical_plane" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the complex 2d input field at position -z of a      perfect, aberration free optical system</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>Nx,Ny</em>) &#8211; the 2d shape of the geometry</li>
+<li><strong>units</strong> (<em>dx,dy</em>) &#8211; the pixel sizes in microns</li>
+<li><strong>z</strong> (<em>float</em>) &#8211; defocus position in microns, such that the beam would focus at z
+e.g. an input field with z = 10. would hav its focus spot after 10 microns</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength of light used in microns</li>
+<li><strong>NA</strong> (<em>float/list</em>) &#8211; the numerical aperture(s) of the illumination objective
+that is either a single number (for gaussian beams) or an
+even length list of NAs (for bessel beams), e.g.
+NA = [0.5,0.55] lets light through the annulus 0.5&lt;0.55 (making a bessel beam ) or
+NA = [0.1,0.2,0.5,0.6] lets light through the annulus 0.1&lt;0.2 and 0.5&lt;0.6 making a
+beating double bessel beam...</li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the medium</li>
+<li><strong>n_integration_steps</strong> (<em>int</em>) &#8211; number of integration steps to perform</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ex</strong> &#8211;
+the complex field</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># the input pattern of a bessel beam that will focus after 4 microns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span> <span class="o">=</span> <span class="n">focus_field_cylindrical_plane</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="n">z</span> <span class="o">=</span> <span class="mf">4.</span><span class="p">,</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#biobeam.focus_field_cylindrical" title="biobeam.focus_field_cylindrical"><code class="xref py py-func docutils literal"><span class="pre">biobeam.focus_field_cylindrical()</span></code></a></dt>
+<dd>the 3d function</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="bessel-lattices">
+<h2><a class="toc-backref" href="#id10">Bessel Lattices</a><a class="headerlink" href="#bessel-lattices" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/pupil_lattice.png"><img alt="_images/pupil_lattice.png" class="align-center" src="_images/pupil_lattice.png" style="width: 200px;" /></a>
+<dl class="function">
+<dt id="biobeam.focus_field_lattice">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_lattice</code><span class="sig-paren">(</span><em>shape</em>, <em>units</em>, <em>lam=0.5</em>, <em>NA1=0.4</em>, <em>NA2=0.5</em>, <em>sigma=0.1</em>, <em>kpoints=6</em>, <em>n0=1.0</em>, <em>n_integration_steps=100</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates the focus field for a bessel lattice
+The pupil function consists out of discrete points (kpoints) superimposed on an annulus (NA1&lt;NA2)
+which are smeared out by a 1d gaussian of given sigma creating an array of bessel beams in the
+focal plane (see <a class="footnote-reference" href="#id6" id="id5">[3]</a> ).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>Nx,Ny,Nz</em>) &#8211; the shape of the geometry</li>
+<li><strong>units</strong> (<em>dx,dy,dz</em>) &#8211; the pixel sizes in microns</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength of light used in microns</li>
+<li><strong>NA1</strong> (<em>float/list</em>) &#8211; the numerical aperture of the inner ring</li>
+<li><strong>NA2</strong> (<em>float/list</em>) &#8211; the numerical aperture of the outer ring</li>
+<li><strong>sigma</strong> (<em>float</em>) &#8211; the standard deviation of the gaussian smear function applied to each point on the aperture
+(the bigger sigma, the tighter the sheet in y)</li>
+<li><strong>kpoints</strong> (<em>int/ (2,N) array</em>) &#8211; defines the set of points on the aperture that create the lattice, can be
+- a (2,N) ndarray, such that kpoints[:,i] are the coordinates of the ith point
+- a single int, defining points on a regular polygon (e.g. 4 for a square lattice, 6 for a hex lattice)
+<img class="math" src="_images/math/17b4570ef0e247eca9a22088b300ca9867f651d9.png" alt="k_i = \arcsin\frac{NA_1+NA_2}{2 n_0} \begin{pmatrix} \cos \phi_i \\ \sin \phi_i \end{pmatrix}\quad, \phi_i = \frac{\pi}{2}+\frac{2i}{N}"/></li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the medium</li>
+<li><strong>n_integration_steps</strong> (<em>int</em>) &#8211; number of integration steps to perform</li>
+<li><strong>return_all_fields</strong> (<em>boolean</em>) &#8211; if True, returns u,ex,ey,ez where ex/ey/ez are the complex vector field components</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>u</strong> (<em>ndarray</em>) &#8211;
+the intensity of the focus field</li>
+<li><strong>(u,ex,ey,ez)</strong> (<em>list(ndarray)</em>) &#8211;
+the intensity of the focus field and the complex field components (if return_all_fields is True)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">focus_field_lattice</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA1</span> <span class="o">=</span> <span class="o">.</span><span class="mi">44</span><span class="p">,</span> <span class="n">NA2</span> <span class="o">=</span> <span class="o">.</span><span class="mi">55</span><span class="p">,</span> <span class="n">kpoints</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td>Chen et al. Lattice light-sheet microscopy: imaging molecules to embryos at high spatiotemporal resolution. Science 346, (2014).</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="biobeam.focus_field_lattice_plane">
+<code class="descclassname">biobeam.</code><code class="descname">focus_field_lattice_plane</code><span class="sig-paren">(</span><em>shape=(256</em>, <em>256)</em>, <em>units=(0.1</em>, <em>0.1)</em>, <em>z=0.0</em>, <em>lam=0.5</em>, <em>NA1=0.4</em>, <em>NA2=0.5</em>, <em>sigma=0.1</em>, <em>Npoly=6</em>, <em>n0=1.0</em>, <em>apodization_bound=10</em>, <em>ex_g=None</em>, <em>n_integration_steps=100</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_lattice_plane" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/logo_biobeam_transp.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=maweigert&repo=biobeam&type=follow&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic.html">Basic Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Input Beam patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#gaussian-bessel-beams">Gaussian/Bessel beams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cylindrical-lens">Cylindrical Lens</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bessel-lattices">Bessel Lattices</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html#some-examples">Some Examples</a></li>
+</ul>
+
+<hr />
+<p>
+<h2 class='logo'>
+<a href="https://github.com/maweigert/biobeam"> Github Page </a>
+</h2>
+</p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Martin Weigert.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/beams.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

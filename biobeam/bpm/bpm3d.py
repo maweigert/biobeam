@@ -14,7 +14,9 @@ from gputools import fft, fft_plan
 #from gputools import OCLReductionKernel
 
 
-from bpm import psf_u0, psf_cylindrical_u0
+from biobeam.focus_field import focus_field_cylindrical_plane, \
+    focus_field_beam_plane, \
+    focus_field_lattice_plane
 
 
 
@@ -53,20 +55,34 @@ class Bpm3d(object):
                  fftplan_kwargs = {}):
         """
 
-        :param size:  the size of the geometry in pixels (Nx,Ny,Nz)
-        :param units: the physical units of each voxel in microns (dx,dy,dz)
-        :param dn: refractive index distribution (can be given later)
-        :param lam: the wavelength of light in microns
-        :param n0:  the refractive index of the surrounding media
-        :param n_volumes: splits the domain into chunks if GPU memory is not
-                        large enough
+        Parameters
+        ----------
+        size: (Sx,Sy,Sz)
+            the size of the geometry in microns (Sx,Sy,Sz)
+        shape: (Nx,Ny,Nz)
+            the shape of the geometry in pixels (Nx,Ny,Nz)
+        units: (dx,dy,dz)
+            the voxelsizes in microns (dx,dy,dz)
+        dn: ndarray (float32|complex64)
+            refractive index distribution, dn.shape != (Nz,Ny,Nx)
+        lam: float
+            the wavelength in microns
+        n0: float
+            the refractive index of the surrounding media
+        simul_xy: (Nx,Ny,Nz), optional
+            the shape of the 2d computational geometry in pixels (Nx,Ny)
+            (e.g. subsampling in xy)
+        simul_z: int, optional
+            the subsampling factor along z
+        n_volumes: int
+            splits the domain into chunks if GPU memory is not
+            large enough (will be set automatically)
 
-        example:
+        Example
+        -------
 
-        model = Bpm3d(size = (128,128,128),
-                      units = (0.1,0.1,0.1),
-                      lam = 0.5,
-                      n0 = 1.33)
+        >>> m = Bpm3d(size = (10,10,10),shape = (256,256,256),units = (0.1,0.1,0.1),lam = 0.488,n0 = 1.33)
+
         """
 
         if shape is None and dn is None:
@@ -296,6 +312,21 @@ class Bpm3d(object):
 
         u0 = psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
                       zfoc = zfoc, NA = NA,
+                      lam = self.lam, n0 = self.n0)
+        cx,cy = center
+        return np.roll(np.roll(u0,cy,0),cx,1)
+
+
+    def u0_lattice(self, center = (0,0),zfoc =None ,  NA1 = .3, NA2 = .4,
+                   sigma = .1):
+
+        if zfoc is None:
+            zfoc = .5*self.size[-1]
+
+        u0 = psf_lattice_u0(shape = self.simul_xy,
+                            units = (self.dx, self.dy),
+                      zfoc = zfoc, NA1 = NA1, NA2 = NA2,
+                            sigma = sigma,
                       lam = self.lam, n0 = self.n0)
         cx,cy = center
         return np.roll(np.roll(u0,cy,0),cx,1)

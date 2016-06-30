@@ -91,8 +91,10 @@ class BeamGui(QtGui.QWidget):
         if simul_xy is None:
             simul_xy = dn.shape[1:][::-1]
 
+        #simul_z = 2
+        #simul_xy = (1024,)*2
         simul_z = 2
-        simul_xy = (1024,)*2
+        simul_xy = (512,)*2
 
         self.bpm = Bpm3d_img(size = size, dn = dn,
                              lam = .5,
@@ -132,6 +134,17 @@ class BeamGui(QtGui.QWidget):
             u0  = self.bpm.u0_beam(NA= NA)
         elif self.properties["beam_type"] == "cylindrical":
             u0  = self.bpm.u0_cylindrical(NA= NA)
+        elif self.properties["beam_type"] == "lattice":
+            try:
+                NA1, NA2 = NA
+                print NA1, NA2
+            except:
+                QtGui.QMessageBox.information(None, 'Error',
+            "NA should be a list of two NAs, e.g. (.4,.5)")
+
+            sigma = self.properties.get("sigma",.1)
+            u0  = self.bpm.u0_lattice(NA1= NA1, NA2 = NA2, sigma = sigma)
+
         elif self.properties["beam_type"] == "plane":
             u0  = None
 
@@ -183,7 +196,7 @@ if __name__ == '__main__':
         if sys.argv[1] != "0":
             dn = read3dTiff(sys.argv[1])
         else:
-            dn = np.zeros((128,256,256),np.float32)
+            dn = np.zeros((256,256,256),np.float32)
             dn[0,0,0]=.01
     else:
         dn = sphere_dn()
