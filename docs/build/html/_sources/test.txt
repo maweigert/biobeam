@@ -1,7 +1,0 @@
-API Documentation 
-=================
-
-
-
-.. autofunction:: biobeam.focus_field_beam
-.. autofunction:: biobeam.focus_field_beam_plane
