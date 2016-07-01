@@ -4,12 +4,11 @@
    contain the root `toctree` directive.
 
 
-.. include:: ../../README.rst
+biobeam - GPU accelerated simulation of light interacting with tissue
+=====================================================================
 
 
-.. biobeam - GPU accelerated simulation of light interacting with tissue
-   =====================================================================
-   .. image:: _static/bessel_beam.jpg
+.. image:: _static/bessel_beam.jpg
 
 
 
