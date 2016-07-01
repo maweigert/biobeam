@@ -118,13 +118,14 @@ html_theme = 'alabaster'
 # documentation.
 #html_theme_options = {}
 html_theme_options = {
-    "logo": "logo_biobeam_transp.png",
+    "logo": "logo_biobeam_transp_red.png",
+    "description": "GPU accelerated beam propagation",
     "logo_name":"false",
     "logo_text_align":"center",
     "github_type": "follow",
     'github_user': 'maweigert',
     'github_repo': 'biobeam',
-    # "github_banner": "true",
+    #"github_banner": "true",
     "github_button": "true",
     "show_related": "true",
     "sidebar_link":"link",
@@ -174,9 +175,9 @@ html_static_path = ['_static']
 html_sidebars = {
     '**': [
         'about.html',
+        'linkbar.html',
         'navigation.html',
         #'relations.html',
-        'linkbar.html',
         'searchbox.html',
     ]
 }
@@ -256,7 +257,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-latex_logo = "../../artwork/logo_biobeam_transp.png"
+latex_logo = "../../artwork/logo_biobeam_transp_red.png"
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.

@@ -3,14 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to biobeams
-===================
+
+.. include:: ../../README.rst
 
 
-Biobeams is awesome. And so are you!
-
-
-This is something I want to say that is not in the docstring.
+.. biobeam - GPU accelerated simulation of light interacting with tissue
+   =====================================================================
+   .. image:: _static/bessel_beam.jpg
 
 
 
@@ -19,7 +18,6 @@ This is something I want to say that is not in the docstring.
    :hidden:
    :maxdepth: 2
 
-   includeme
    intro
    installing
    basic

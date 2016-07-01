@@ -2,6 +2,7 @@ Examples
 ========
 
 
+
 Plane wave scattered by sphere
 ------------------------------
 

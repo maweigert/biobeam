@@ -1,6 +1,7 @@
 Installation
 ============
 
+
 To nicely render the 3d output it is advisible to install *Spimagine*, an OpenCL accelerated renderer `Spimagine <https://github.com/maweigert/spimagine>`_
 
 ::
