@@ -1,8 +1,6 @@
 Basic Usage
 ============
 
-.. contents::
-
 
 Beam propagation
 ----------------
