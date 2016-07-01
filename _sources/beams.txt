@@ -1,9 +1,6 @@
 Input Beam patterns 
 ===================
 
-.. contents::
-
-
 Gaussian/Bessel beams
 ---------------------
 
