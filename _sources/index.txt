@@ -21,6 +21,9 @@ biobeam - GPU accelerated simulation of light interacting with tissue
    installing
    basic
    beams
+   focus_field
+   forward_model
+   aberrations
    examples
 			  
    	 
