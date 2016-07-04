@@ -24,6 +24,6 @@ if __name__ == '__main__':
 
     u1 = m.propagate(u0 = m.u0_beam())
 
-    
+
     #u2 = m.propagate(u0 = m.u0_beam(), dn_mean_method="local")
     #u = m.propagate(dn_mean_method="local")
