@@ -1,6 +1,6 @@
 #biobeam - GPU accelerated simulation of light interacting with tissue
 
-![logo](https://github.com/maweigert/biobeam/raw/master/artwork/logo_biobeam_red.png =240x)
+![logo](https://github.com/maweigert/biobeam/raw/master/artwork/logo_biobeam_red.png | width=240x)
 
 
 *biobeam* is an open source python package for simulating light propagation on weakly scattering tissue. It implements a scalar beam propagation method while making use of GPU acceleration via PyOpenCL. It is designed to provide fast wave optical simulations common in light sheet microscopy while providing an easy to use API from within Python.
