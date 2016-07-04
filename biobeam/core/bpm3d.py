@@ -8,6 +8,9 @@ mweigert@mpi-cbg.de
 import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device
 from gputools import fft, fft_plan
+import gputools
+#gputools.init_device(useDevice = 0)
+
 
 #from gputools import OCLReductionKernel
 
@@ -39,7 +42,7 @@ class Bpm3d(object):
     _real_type = np.float32
     _complex_type = np.complex64
 
-    def __init__(self, size = (20,20,20),
+    def __init__(self, size = None,
                  shape = None,
                  units = None,
                  dn = None,
@@ -84,19 +87,26 @@ class Bpm3d(object):
 
         if shape is None and dn is None:
             raise ValueError("either shape or dn have to be given!")
+
         if not(shape is None or dn is None) and dn.shape != shape[::-1]:
             raise ValueError("shape != dn.shape")
+
+        if size is None and units is None:
+            raise ValueError("either size or units has to be given!")
+
         if not (size is None or units is None):
             raise ValueError("either give size or units but not both!")
 
         assert n_volumes>0
 
-        if not units is None:
-            size = [(s-1.)*u for s, u in zip(shape, units)]
 
 
         if shape is None:
             shape = dn.shape[::-1]
+
+
+        if not units is None:
+            size = [(s-1.)*u for s, u in zip(shape, units)]
 
 
         self.n_volumes = n_volumes
@@ -116,18 +126,6 @@ class Bpm3d(object):
         self._setup_dn(dn)
 
 
-    def _get_slices(self, offset = 0):
-        Nz = self.shape[-1]
-        if self.n_volumes == 1:
-            slices = [slice(offset,Nz)]
-        else:
-            slices = []
-            i = offset
-            while i<Nz:
-                slices.append(slice(i,min(i+self.maxNz,Nz)))
-                i += self.maxNz
-
-        return slices
 
 
 
@@ -167,7 +165,7 @@ class Bpm3d(object):
         self.k0 = 2.*np.pi/self.lam
         self._is_subsampled = enforce_subsampled or ((self.shape[:2] != self.simul_xy) or (simul_z>1))
 
-        self.maxNz = int(np.ceil(1.*self.shape[-1]/self.n_volumes))
+        self.maxNz = int(np.ceil(1.*self.shape[-1]/self.n_volumes))+1
 
 
         self._setup_gpu()
@@ -386,6 +384,7 @@ class Bpm3d(object):
         if u0 is None:
             u0 = self.u0_plane()
 
+        u0 = u0.astype(np.complex64,copy=False)
 
         Nx, Ny, Nz = self.shape
 
@@ -404,7 +403,6 @@ class Bpm3d(object):
                 self._copy_down_img(self._img_xy,u,0)
             else:
                 self._copy_down_buf(self._buf_plane,u,0)
-
 
         dn0 = 0
 
@@ -430,8 +428,6 @@ class Bpm3d(object):
                         self._fill_propagator(self.n0+dn0)
 
 
-
-
             for j in xrange(self.simul_z):
 
                 fft(self._buf_plane, inplace = True, plan  = self._plan)
@@ -452,15 +448,154 @@ class Bpm3d(object):
         else:
             return self._buf_plane.get()
 
-
-
-    def _propagate2(self, u0 = None, offset = 0,
+    def propagate(self, u0 = None, offset = 0,
                    return_comp = "field",
                    return_shape = "full",
                    free_prop = False,
                    slow_mean = False,
                    **kwargs):
         """
+        kwargs:
+            return_comp in ["field", "intens"]
+            return_shape in ["last", "full"]
+            free_prop = False | True
+        """
+        if self.n_volumes==1:
+            return self._propagate_single(u0 = u0,
+                                          offset = offset,
+                                    return_shape=return_shape,
+                                    return_comp= return_comp,
+                                    free_prop = free_prop,
+                                    slow_mean = slow_mean,
+                               **kwargs)
+        else:
+            return self._propagate_multi(u0 = u0,
+                                   offset = offset,
+                                    return_shape=return_shape,
+                                    return_comp= return_comp,
+                                    free_prop = free_prop,
+                                    slow_mean = slow_mean,
+                               **kwargs)
+
+
+    def _propagate_single(self, u0 = None, offset = 0,
+                   return_comp = "field",
+                   return_shape = "full",
+                   free_prop = False,
+                   slow_mean = False,
+                   **kwargs):
+        """
+        kwargs:
+            return_comp in ["field", "intens"]
+            return_shape in ["last", "full"]
+            free_prop = False | True
+        """
+
+        if u0 is None:
+            u0 = self.u0_plane()
+
+
+        return self._propagate_core(u0 = u0,
+                                    dn_ind_start=offset,
+                                    dn_ind_end=self.shape[-1],
+                                    dn_ind_offset=0,
+                                    return_shape=return_shape,
+                                    return_comp= return_comp,
+                                    free_prop = free_prop,
+                                    slow_mean = slow_mean,
+                                    **kwargs)
+
+    def _propagate_multi(self, u0 = None, offset = 0,
+                   return_comp = "field",
+                   return_shape = "full",
+                   free_prop = False,
+                   slow_mean = False,
+                   **kwargs):
+        """
+        the propagate function if n_volumes>1, i.e. if GPU memory is to small to hold
+        everything
+        chops the refractive index/fields into smaller chunks and combines them again
+
+        kwargs:
+            return_comp in ["field", "intens"]
+            return_shape in ["last", "full"]
+            free_prop = False | True
+        """
+
+        if u0 is None:
+            u0 = self.u0_plane()
+
+        Nz = self.shape[-1]
+        dn_slices = []
+        i = offset
+        while i<Nz:
+            dn_slices.append(slice(i,min(i+self.maxNz,Nz)))
+            i += self.maxNz-1
+
+        u_slices = [slice(s_dn.start-offset,s_dn.stop-offset) for s_dn in dn_slices]
+
+        Nx, Ny, _ = self.shape
+        Nz = self.shape[-1] - offset
+
+        if return_comp=="field":
+            res_type = Bpm3d._complex_type
+        elif return_comp=="intens":
+            res_type = Bpm3d._real_type
+        else:
+            raise ValueError(return_comp)
+
+        if return_shape=="full":
+            u = np.empty((Nz,Ny,Nx),dtype=res_type)
+
+
+        self._buf_plane.write_array(u0.astype(np.complex64,copy=False))
+
+        all_offset = offset
+        for s_dn, s_u in zip(dn_slices, u_slices):
+
+            if not self.dn is None:
+                self._transfer_dn(self.dn[s_dn])
+            #print s_dn, all_offset, s_dn.stop-s_dn.start
+
+            res = self._propagate_core(u0 = None,
+                                    dn_ind_start=0,
+                                    dn_ind_end=s_dn.stop-s_dn.start,
+                                    dn_ind_offset=all_offset,
+                                    return_shape=return_shape,
+                                    return_comp= return_comp,
+                                    free_prop = free_prop,
+                                    slow_mean = slow_mean,
+                                    **kwargs)
+
+            all_offset += s_dn.stop-s_dn.start-1
+
+            if return_shape=="full":
+                u[s_u] = res
+
+
+        if return_shape=="full":
+            return u
+        else:
+            return self._buf_plane.get()
+
+
+
+    def _propagate_core(self,
+                        u0 = None,
+                        dn_ind_start = 0,
+                        dn_ind_end = 1,
+                        dn_ind_offset = 0,
+                   return_comp = "field",
+                   return_shape = "full",
+                   free_prop = False,
+                   slow_mean = False,
+                   **kwargs):
+        """
+        the core propagation method, the refractive index dn is
+        assumed to be already residing in gpu memory
+        if u0 is None, assumes that the initial field
+        to be residing in self._buf_plane
+
         kwargs:
             return_comp in ["field", "intens"]
             return_shape in ["last", "full"]
@@ -476,93 +611,73 @@ class Bpm3d(object):
         else:
             raise ValueError(return_comp)
 
-
-
-        # if offset>0 and return_shape != "last":
-        #     raise ValueError("only use offset>0 in combination with return_shape = 'last'")
-
         if not return_shape in ["last", "full"]:
             raise ValueError()
 
 
-        if u0 is None:
-            u0 = self.u0_plane()
+        Nx, Ny, _ = self.shape
+        Nz = dn_ind_end - dn_ind_start
 
 
-        Nx, Ny, Nz = self.shape
+        assert dn_ind_start>=0
 
-        assert offset>=0 and offset<(Nz-1)
+        if not u0 is None:
+            self._buf_plane.write_array(u0.astype(np.complex64,copy=False))
+
+
 
         if return_shape=="full":
-            u = np.empty((Nz-offset,Ny,Nx),dtype=res_type)
+            u = OCLArray.empty((Nz,Ny,Nx),dtype=res_type)
 
+        #copy the first plane
+        if return_shape=="full":
+            if self._is_subsampled:
+                self._img_xy.copy_buffer(self._buf_plane)
+                self._copy_down_img(self._img_xy,u,0)
+            else:
+                self._copy_down_buf(self._buf_plane,u,0)
 
-        self._buf_plane.write_array(u0)
+        dn0 = 0
 
-        slices = self._get_slices(offset)
+        for i in xrange(Nz-1):
 
-
-        for ns, slice in enumerate(slices):
-            Nzslice = slice.stop-slice.start
-            if return_shape == "full":
-                u_g = OCLArray.empty((Nzslice,Ny,Nx),dtype=res_type)
-
-
-            if ns == 0:
-                #copy the first plane
-                if return_shape=="full":
-                    if self._is_subsampled:
-                        self._img_xy.copy_buffer(self._buf_plane)
-                        self._copy_down_img(self._img_xy,u_g,0)
+            if not self.dn is None and not free_prop:
+                if slow_mean:
+                    if return_shape=="full":
+                        raise NotImplementedError()
                     else:
-                        self._copy_down_buf(self._buf_plane,u_g,0)
-
-            if self.n_volumes>1 and not free_prop:
-                self._transfer_dn(self.dn[slice])
-
-            dn0 = 0
-
-            for i in xrange(Nzslice-1):
-                if not self.dn is None and not free_prop:
-                    if slow_mean:
-                        if return_shape=="full":
-                            raise NotImplementedError()
+                        tmp = OCLArray.empty((1,Ny,Nx),dtype=res_type)
+                        if self._is_subsampled:
+                            self._img_xy.copy_buffer(self._buf_plane)
+                            self._copy_down_img(self._img_xy,tmp,0)
                         else:
-                            tmp = OCLArray.empty((1,Ny,Nx),dtype=res_type)
-                            if self._is_subsampled:
-                                self._img_xy.copy_buffer(self._buf_plane)
-                                self._copy_down_img(self._img_xy,tmp,0)
-                            else:
-                                self._copy_down_buf(self._buf_plane,tmp,0)
+                            self._copy_down_buf(self._buf_plane,tmp,0)
 
-                            dn0 = np.sum(np.abs(self.dn[i])*tmp.get())/np.sum(np.abs(self.dn[i])+1.e-10)
-                            print dn0
-                            self._fill_propagator(self.n0+dn0)
-                    else:
-                        if self.dn_mean[i+slice.start] != dn0:
-                            dn0 = self.dn_mean[i+slice.start]
-                            self._fill_propagator(self.n0+dn0)
+                        dn0 = np.sum(np.abs(self.dn[i+dn_ind_offset])*tmp.get())/np.sum(np.abs(self.dn[i+dn_ind_offset])+1.e-10)
+                        print dn0
+                        self._fill_propagator(self.n0+dn0)
+                else:
+                    if self.dn_mean[i+dn_ind_start+dn_ind_offset] != dn0:
+                        dn0 = self.dn_mean[i+dn_ind_start+dn_ind_offset]
+                        self._fill_propagator(self.n0+dn0)
 
-                for j in xrange(self.simul_z):
 
-                    fft(self._buf_plane, inplace = True, plan  = self._plan)
-                    self._mult_complex(self._buf_plane, self._buf_H)
-                    fft(self._buf_plane, inplace = True, inverse = True, plan  = self._plan)
-                    if not free_prop:
-                        self._mult_dn(self._buf_plane,(i+(j+1.)/self.simul_z),dn0)
+            for j in xrange(self.simul_z):
+                fft(self._buf_plane, inplace = True, plan  = self._plan)
+                self._mult_complex(self._buf_plane, self._buf_H)
+                fft(self._buf_plane, inplace = True, inverse = True, plan  = self._plan)
+                if not free_prop:
+                    self._mult_dn(self._buf_plane,(i+dn_ind_start+(j+1.)/self.simul_z),dn0)
 
-                if return_shape=="full":
-                    if self._is_subsampled and self.simul_xy!=self.shape[:2]:
-                        self._img_xy.copy_buffer(self._buf_plane)
-                        self._copy_down_img(self._img_xy,u_g,(i+1)*(Nx*Ny))
-                    else:
-                        self._copy_down_buf(self._buf_plane,u_g,(i+1)*(Nx*Ny))
+            if return_shape=="full":
+                if self._is_subsampled and self.simul_xy!=self.shape[:2]:
+                    self._img_xy.copy_buffer(self._buf_plane)
+                    self._copy_down_img(self._img_xy,u,(i+1)*(Nx*Ny))
+                else:
+                    self._copy_down_buf(self._buf_plane,u,(i+1)*(Nx*Ny))
 
-            if return_shape =="full":
-                u[slice] = u_g.get()
-
-        if return_shape == "full":
-            return u
+        if return_shape=="full":
+            return u.get()
         else:
             return self._buf_plane.get()
 
@@ -703,7 +818,26 @@ if __name__ == '__main__':
     #
     # phi, zern = m.aberr_at(center = (0,0,0))
 
+    dn = np.zeros((128,)*3)
+    dn[20:60] = 0.3
+    m = Bpm3d(dn = dn,
+              size = (10,)*3,
+              n_volumes = 1)
 
-    m = Bpm3d(shape = (256,256,256),n_volumes = 1)
+    for i in range(10):
+        print i
+        # fft(m._buf_plane, inplace = True, plan  = m._plan)
+        m._mult_complex(m._buf_plane, m._buf_plane)
+        # fft(m._buf_plane, inverse = True, inplace = True, plan  = m._plan)
 
-    u = m._propagate2()
+
+
+    #u = m.propagate()
+
+    #u = m._propagate_core(10,70,  u0 = m.u0_plane())
+
+    #u = m._propagate_single()
+
+
+    # m = Bpm3d(shape = (256,256,256),units = (.1,.1,.1),n_volumes = 1)
+    # u = m.propagate()

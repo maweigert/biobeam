@@ -28,7 +28,7 @@ __kernel void mult_dn(__global cfloat_t* input,
   int Nx = get_global_size(0);
   int Ny = get_global_size(1);
 
-  float dnDiff = -unit_k*(dn[i+Nx*j+offset]-dn0);
+  float dnDiff = unit_k*(dn[i+Nx*j+offset]-dn0);
 
   // int distx = min(Nx-i-1,i);
   // int disty = min(Ny-j-1,j);
@@ -63,7 +63,7 @@ __kernel void mult_dn_complex(__global cfloat_t* input,
   // float absorb_val = (dist<absorb)?0.5f*(1-cos(M_PI*dist/absorb)):1.f;
 
 
-  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,-unit_k),cfloat_addr(dn[i+Nx*j+offset],-dn0));
+  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,unit_k),cfloat_addr(dn[i+Nx*j+offset],-dn0));
 
   cfloat_t dPhase = cfloat_exp(dnDiff);
 
@@ -94,7 +94,7 @@ __kernel void mult_dn_image(__global cfloat_t* plane,
   float dn_val = read_imagef(dn, sampler, (float4)(1.f*i/(Nx-1.f),1.f*j/(Ny-1.f),zpos,0)).x;
 
 
-  float dnDiff = -unit_k*(dn_val-dn0);
+  float dnDiff = unit_k*(dn_val-dn0);
 
   cfloat_t dPhase = cfloat_new(cos(dnDiff),sin(dnDiff));
 
@@ -119,7 +119,7 @@ __kernel void mult_dn_image_complex(__global cfloat_t* plane,
   
   float2 dn_val = read_imagef(dn, sampler, (float4)(1.f*i/(Nx-1.f),1.f*j/(Ny-1.f),zpos,0)).xy;
   
-  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,-unit_k),cfloat_new(dn_val.x-dn0,dn_val.y));
+  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,unit_k),cfloat_new(dn_val.x-dn0,dn_val.y));
 
   cfloat_t dPhase = cfloat_exp(dnDiff);
 
