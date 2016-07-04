@@ -21,14 +21,17 @@ __kernel void mult_dn(__global cfloat_t* input,
 					  __global float* dn,
 					  const float unit_k,
 					  const float dn0,
-					  const int offset){
+					  const int offset,
+					  __global float * buf_sum1,
+					  __global float * buf_sum2){
 
   int i = get_global_id(0);
   int j = get_global_id(1);
   int Nx = get_global_size(0);
   int Ny = get_global_size(1);
 
-  float dnDiff = unit_k*(dn[i+Nx*j+offset]-dn0);
+  float dn_val = dn[i+Nx*j+offset];
+  float dnDiff = unit_k*(dn_val-dn0);
 
   // int distx = min(Nx-i-1,i);
   // int disty = min(Ny-j-1,j);
@@ -41,6 +44,11 @@ __kernel void mult_dn(__global cfloat_t* input,
   cfloat_t res = cfloat_mul(input[i+Nx*j],dPhase);
 
   input[i+Nx*j] = res;
+
+  float sum1 = cfloat_abs(res);
+  buf_sum1[i+Nx*j] = sum1*sum1;
+  buf_sum2[i+Nx*j] = sum1*sum1*dn_val;
+
 }
 
 
@@ -48,7 +56,9 @@ __kernel void mult_dn_complex(__global cfloat_t* input,
 					  __global cfloat_t* dn,
 					  const float unit_k,
 					  const float dn0,
-					  const int offset){
+					  const int offset,
+					  __global float * buf_sum1,
+					  __global float * buf_sum2){
 
   int i = get_global_id(0);
   int j = get_global_id(1);
@@ -62,8 +72,9 @@ __kernel void mult_dn_complex(__global cfloat_t* input,
 
   // float absorb_val = (dist<absorb)?0.5f*(1-cos(M_PI*dist/absorb)):1.f;
 
+  cfloat_t dn_val = dn[i+Nx*j+offset];
 
-  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,unit_k),cfloat_addr(dn[i+Nx*j+offset],-dn0));
+  cfloat_t dnDiff = cfloat_mul(cfloat_new(0.f,unit_k),cfloat_addr(dn_val,-dn0));
 
   cfloat_t dPhase = cfloat_exp(dnDiff);
 
@@ -71,6 +82,11 @@ __kernel void mult_dn_complex(__global cfloat_t* input,
   cfloat_t res = cfloat_mul(input[i+Nx*j],dPhase);
 
   input[i+Nx*j] = res;
+
+  float sum1 = cfloat_abs(res);
+  buf_sum1[i+Nx*j] = sum1*sum1;
+  buf_sum2[i+Nx*j] = sum1*sum1*dn_val.real;
+
 }
 
 
@@ -80,7 +96,9 @@ __kernel void mult_dn_image(__global cfloat_t* plane,
 							__read_only image3d_t dn,
 							const float unit_k,
 							const float dn0,
-							const float zpos){
+							const float zpos,
+					  __global float * buf_sum1,
+					  __global float * buf_sum2){
 
   // const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE| CLK_ADDRESS_CLAMP_TO_EDGE| CLK_FILTER_NEAREST;
   const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
@@ -99,7 +117,11 @@ __kernel void mult_dn_image(__global cfloat_t* plane,
   cfloat_t dPhase = cfloat_new(cos(dnDiff),sin(dnDiff));
 
   plane[i+Nx*j] = cfloat_mul(plane[i+Nx*j],dPhase);
-  
+
+  float sum1 = cfloat_abs(plane[i+Nx*j]);
+  buf_sum1[i+Nx*j] = sum1;
+  buf_sum2[i+Nx*j] = sum1*dn_val;
+
 
 }
 
@@ -107,7 +129,9 @@ __kernel void mult_dn_image_complex(__global cfloat_t* plane,
 							__read_only image3d_t dn,
 							const float unit_k,
 							const float dn0,
-							const float zpos){
+							const float zpos,
+					  __global float * buf_sum1,
+					  __global float * buf_sum2){
 
   //const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE| CLK_ADDRESS_CLAMP_TO_EDGE| CLK_FILTER_NEAREST;
   const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
@@ -127,6 +151,10 @@ __kernel void mult_dn_image_complex(__global cfloat_t* plane,
   cfloat_t res = cfloat_mul(plane[i+Nx*j],dPhase);
 
   plane[i+Nx*j] = res;
+
+  float sum1 = cfloat_abs(res);
+  buf_sum1[i+Nx*j] = sum1*sum1;
+  buf_sum2[i+Nx*j] = sum1*sum1*dn_val.x;
 
 }
 
@@ -160,6 +188,43 @@ __kernel void compute_propagator(__global cfloat_t* H,
   H[i+Nx*j] = h;
 }
 
+__kernel void compute_propagator_buf(__global cfloat_t* H,
+								 const float n0,
+								 const float k0,
+								 const float dx,
+								 const float dy,
+								 const float dz,
+								 __constant float *buf1,
+								 __constant float *buf2
+								 ){
+
+  int i = get_global_id(0);
+  int j = get_global_id(1);
+  int Nx = get_global_size(0);
+  int Ny = get_global_size(1);
+
+  float kx = 2.f*M_PI*FFTFREQ(i,Nx,dx);
+  float ky = 2.f*M_PI*FFTFREQ(j,Ny,dy);
+
+
+//  if ((i+j)==0)
+//   printf("%.7f %.7f \n",buf1[0],buf2[0]);
+
+
+  float n00 = n0+buf1[0]/buf2[0];
+
+  float tmp = n00*n00*k0*k0-kx*kx-ky*ky;
+
+  float root = (tmp>=0.f)?sqrt(tmp):sqrt(-tmp);
+  //float h0 = (tmp<0.f)?0.f:sqrt(tmp);
+
+  //cfloat_t h = (tmp>=0.f)?cfloat_new(cos(-dz*root),sin(-dz*root)):cfloat_new(exp(-dz*root),0.f);
+
+  cfloat_t h = (tmp>=0.f)?cfloat_new(cos(dz*root),sin(dz*root)):cfloat_new(exp(-dz*root),0.f);
+
+
+  H[i+Nx*j] = h;
+}
 
 
 __kernel void img_to_buf_field(__read_only image2d_t src,
