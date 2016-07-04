@@ -9,15 +9,12 @@ import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device
 from gputools import fft, fft_plan
 
-
-#from biobeam.psf.psf_functions import psf_u0, psf_cylindrical_u0
 #from gputools import OCLReductionKernel
 
 
-from biobeam.focus_field import focus_field_cylindrical_plane, \
-    focus_field_beam_plane, \
-    focus_field_lattice_plane
-
+from focus_field_cylindrical import focus_field_cylindrical, focus_field_cylindrical_plane
+from focus_field_beam import focus_field_beam, focus_field_beam_plane
+from focus_field_lattice import focus_field_lattice, focus_field_lattice_plane
 
 
 
@@ -42,7 +39,7 @@ class Bpm3d(object):
     _real_type = np.float32
     _complex_type = np.complex64
 
-    def __init__(self, size = None,
+    def __init__(self, size = (20,20,20),
                  shape = None,
                  units = None,
                  dn = None,
@@ -92,6 +89,8 @@ class Bpm3d(object):
         if not (size is None or units is None):
             raise ValueError("either give size or units but not both!")
 
+        assert n_volumes>0
+
         if not units is None:
             size = [(s-1.)*u for s, u in zip(shape, units)]
 
@@ -99,7 +98,9 @@ class Bpm3d(object):
         if shape is None:
             shape = dn.shape[::-1]
 
+
         self.n_volumes = n_volumes
+
         self.fftplan_kwargs = fftplan_kwargs
 
         if simul_xy is None:
@@ -115,27 +116,27 @@ class Bpm3d(object):
         self._setup_dn(dn)
 
 
+    def _get_slices(self, offset = 0):
+        Nz = self.shape[-1]
+        if self.n_volumes == 1:
+            slices = [slice(offset,Nz)]
+        else:
+            slices = []
+            i = offset
+            while i<Nz:
+                slices.append(slice(i,min(i+self.maxNz,Nz)))
+                i += self.maxNz
+
+        return slices
+
+
 
     def _copy_arr_with_correct_type(self,arr):
         """if arr is of the acceptable types, returns arr, else
         returns a copy with the acceptable type"""
         return arr.astype(Bpm3d._complex_type, copy = False) if np.iscomplexobj(arr) else arr.astype(Bpm3d._real_type, copy = False)
 
-    def _setup_dn(self,dn):
-        if dn is None:
-            self.dn = None
-        else:
-            if dn.shape != self.shape[::-1]:
-                raise ValueError("shape != dn.shape")
-            self.dn = dn
-            if self._is_subsampled:
-                self._im_dn = OCLImage.from_array(self._copy_arr_with_correct_type(dn))
-            else:
-                self._buf_dn = OCLArray.from_array(self._copy_arr_with_correct_type(dn))
 
-            #FIXME: this is still stupid
-            if not self.dn is None:
-                self.dn_mean = np.mean(np.real(self.dn),axis=(1,2))
 
 
     def _setup(self, shape, size, lam, n0,
@@ -166,8 +167,31 @@ class Bpm3d(object):
         self.k0 = 2.*np.pi/self.lam
         self._is_subsampled = enforce_subsampled or ((self.shape[:2] != self.simul_xy) or (simul_z>1))
 
+        self.maxNz = int(np.ceil(1.*self.shape[-1]/self.n_volumes))
+
 
         self._setup_gpu()
+
+    def _setup_dn(self,dn):
+        if dn is None:
+            self.dn = None
+        else:
+            if dn.shape != self.shape[::-1]:
+                raise ValueError("shape != dn.shape")
+            self.dn = dn
+
+            if self.n_volumes ==1:
+                self._transfer_dn(dn)
+
+            #FIXME: this is still stupid
+            if not self.dn is None:
+                self.dn_mean = np.mean(np.real(self.dn),axis=(1,2))
+
+    def _transfer_dn(self, dn):
+        if self._is_subsampled:
+            self._im_dn = OCLImage.from_array(self._copy_arr_with_correct_type(dn))
+        else:
+            self._buf_dn = OCLArray.from_array(self._copy_arr_with_correct_type(dn))
 
 
     def _setup_gpu(self):
@@ -289,7 +313,7 @@ class Bpm3d(object):
 
 
 
-
+    # the predefined initial fields
     def u0_plane(self, phi = 0):
         return np.exp(1.j*phi)*np.ones(self.simul_xy[::-1],np.complex64)
 
@@ -299,19 +323,19 @@ class Bpm3d(object):
             zfoc = .5*self.size[-1]
 
 
-        u0 =  psf_u0(shape = self.simul_xy, units = (self.dx, self.dy),
-                      zfoc = zfoc,NA = NA,
+        u0 =  focus_field_beam_plane(shape = self.simul_xy, units = (self.dx, self.dy),
+                      z = zfoc,NA = NA,
                       lam = self.lam, n0 = self.n0,
                      n_integration_steps=n_integration_steps)
         cx,cy = center
         return np.roll(np.roll(u0,cy,0),cx,1)
 
-    def u0_cylindrical(self, center = (0,0),zfoc =None ,  NA = .3):
+    def u0_cylindrical(self, center = (0,0),zfoc = None ,  NA = .3):
         if zfoc is None:
             zfoc = .5*self.size[-1]
 
-        u0 = psf_cylindrical_u0(shape = self.simul_xy, units = (self.dx, self.dy),
-                      zfoc = zfoc, NA = NA,
+        u0 = focus_field_cylindrical_plane(shape = self.simul_xy, units = (self.dx, self.dy),
+                      z = zfoc, NA = NA,
                       lam = self.lam, n0 = self.n0)
         cx,cy = center
         return np.roll(np.roll(u0,cy,0),cx,1)
@@ -323,9 +347,9 @@ class Bpm3d(object):
         if zfoc is None:
             zfoc = .5*self.size[-1]
 
-        u0 = psf_lattice_u0(shape = self.simul_xy,
+        u0 = focus_field_lattice_plane(shape = self.simul_xy,
                             units = (self.dx, self.dy),
-                      zfoc = zfoc, NA1 = NA1, NA2 = NA2,
+                      z = zfoc, NA1 = NA1, NA2 = NA2,
                             sigma = sigma,
                       lam = self.lam, n0 = self.n0)
         cx,cy = center
@@ -340,16 +364,11 @@ class Bpm3d(object):
                    slow_mean = False,
                    **kwargs):
         """
-
         kwargs:
             return_comp in ["field", "intens"]
             return_shape in ["last", "full"]
-            free_prop = False|True
+            free_prop = False | True
         """
-
-        # return_val = kwargs.pop("return_result","field")
-        # return_shape = kwargs.pop("return_shape","full")
-        # free_prop = kwargs.pop("free_prop",False)
 
         free_prop = free_prop or (self.dn is None)
 
@@ -387,8 +406,8 @@ class Bpm3d(object):
                 self._copy_down_buf(self._buf_plane,u,0)
 
 
-
         dn0 = 0
+
         for i in xrange(Nz-1-offset):
             if not self.dn is None and not free_prop:
                 if slow_mean:
@@ -431,7 +450,122 @@ class Bpm3d(object):
         if return_shape=="full":
             return u.get()
         else:
-            return self._buf_plane
+            return self._buf_plane.get()
+
+
+
+    def _propagate2(self, u0 = None, offset = 0,
+                   return_comp = "field",
+                   return_shape = "full",
+                   free_prop = False,
+                   slow_mean = False,
+                   **kwargs):
+        """
+        kwargs:
+            return_comp in ["field", "intens"]
+            return_shape in ["last", "full"]
+            free_prop = False | True
+        """
+
+        free_prop = free_prop or (self.dn is None)
+
+        if return_comp=="field":
+            res_type = Bpm3d._complex_type
+        elif return_comp=="intens":
+            res_type = Bpm3d._real_type
+        else:
+            raise ValueError(return_comp)
+
+
+
+        # if offset>0 and return_shape != "last":
+        #     raise ValueError("only use offset>0 in combination with return_shape = 'last'")
+
+        if not return_shape in ["last", "full"]:
+            raise ValueError()
+
+
+        if u0 is None:
+            u0 = self.u0_plane()
+
+
+        Nx, Ny, Nz = self.shape
+
+        assert offset>=0 and offset<(Nz-1)
+
+        if return_shape=="full":
+            u = np.empty((Nz-offset,Ny,Nx),dtype=res_type)
+
+
+        self._buf_plane.write_array(u0)
+
+        slices = self._get_slices(offset)
+
+
+        for ns, slice in enumerate(slices):
+            Nzslice = slice.stop-slice.start
+            if return_shape == "full":
+                u_g = OCLArray.empty((Nzslice,Ny,Nx),dtype=res_type)
+
+
+            if ns == 0:
+                #copy the first plane
+                if return_shape=="full":
+                    if self._is_subsampled:
+                        self._img_xy.copy_buffer(self._buf_plane)
+                        self._copy_down_img(self._img_xy,u_g,0)
+                    else:
+                        self._copy_down_buf(self._buf_plane,u_g,0)
+
+            if self.n_volumes>1 and not free_prop:
+                self._transfer_dn(self.dn[slice])
+
+            dn0 = 0
+
+            for i in xrange(Nzslice-1):
+                if not self.dn is None and not free_prop:
+                    if slow_mean:
+                        if return_shape=="full":
+                            raise NotImplementedError()
+                        else:
+                            tmp = OCLArray.empty((1,Ny,Nx),dtype=res_type)
+                            if self._is_subsampled:
+                                self._img_xy.copy_buffer(self._buf_plane)
+                                self._copy_down_img(self._img_xy,tmp,0)
+                            else:
+                                self._copy_down_buf(self._buf_plane,tmp,0)
+
+                            dn0 = np.sum(np.abs(self.dn[i])*tmp.get())/np.sum(np.abs(self.dn[i])+1.e-10)
+                            print dn0
+                            self._fill_propagator(self.n0+dn0)
+                    else:
+                        if self.dn_mean[i+slice.start] != dn0:
+                            dn0 = self.dn_mean[i+slice.start]
+                            self._fill_propagator(self.n0+dn0)
+
+                for j in xrange(self.simul_z):
+
+                    fft(self._buf_plane, inplace = True, plan  = self._plan)
+                    self._mult_complex(self._buf_plane, self._buf_H)
+                    fft(self._buf_plane, inplace = True, inverse = True, plan  = self._plan)
+                    if not free_prop:
+                        self._mult_dn(self._buf_plane,(i+(j+1.)/self.simul_z),dn0)
+
+                if return_shape=="full":
+                    if self._is_subsampled and self.simul_xy!=self.shape[:2]:
+                        self._img_xy.copy_buffer(self._buf_plane)
+                        self._copy_down_img(self._img_xy,u_g,(i+1)*(Nx*Ny))
+                    else:
+                        self._copy_down_buf(self._buf_plane,u_g,(i+1)*(Nx*Ny))
+
+            if return_shape =="full":
+                u[slice] = u_g.get()
+
+        if return_shape == "full":
+            return u
+        else:
+            return self._buf_plane.get()
+
 
     def _aberr_from_field(self,u0,NA, n_zern = 20):
         """assume NA is the same"""
@@ -467,10 +601,10 @@ class Bpm3d(object):
         u0 = np.roll(np.roll(self.u0_beam(zfoc = 0.,NA=NA,
                                           n_integration_steps = n_integration_steps),cy,0),cx,1)
 
-        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last").get()
+        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last")
 
         u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
-                                 offset=offset, return_shape="last").get()
+                                 offset=offset, return_shape="last")
         u_back = np.roll(np.roll(u_back,-cy,0),-cx,1)
 
         self._u_back = u_back
@@ -508,10 +642,10 @@ class Bpm3d(object):
         #u0 = reduce(np.add,[np.roll(np.roll(u0_single,cy,0),cx,1) for cx,cy in zip(Xs,Ys)])
 
         print "propagation"
-        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last").get()
+        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last")
 
         u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
-                                 offset=offset, return_shape="last").get()
+                                 offset=offset, return_shape="last")
 
         self._u_back = u_back
 
@@ -549,22 +683,27 @@ class Bpm3d(object):
 
 if __name__ == '__main__':
 
-    from time import time
+    # from time import time
+    #
+    # shape = (256,256,256)
+    # size = (40,40,40)
+    # shape = (512,256,256)
+    # size = (80.16,40,40)
+    # #shape = (256,512,256)
+    # # size = (40,80,40)
+    #
+    # if not "dn" in locals():
+    #     xs = [np.linspace(-.5*s,.5*s,N) for s,N in zip(size,shape)]
+    #     Xs = np.meshgrid(*xs[::-1],indexing="ij")
+    #     R = np.sqrt(reduce(np.add,[_X**2 for _X in Xs]))
+    #     dn = (.1-.001j)*(R<size[-1]/5)
+    #
+    # m = Bpm3d(size = size, dn = dn)
+    #
+    #
+    # phi, zern = m.aberr_at(center = (0,0,0))
 
-    shape = (256,256,256)
-    size = (40,40,40)
-    shape = (512,256,256)
-    size = (80.16,40,40)
-    #shape = (256,512,256)
-    # size = (40,80,40)
 
-    if not "dn" in locals():
-        xs = [np.linspace(-.5*s,.5*s,N) for s,N in zip(size,shape)]
-        Xs = np.meshgrid(*xs[::-1],indexing="ij")
-        R = np.sqrt(reduce(np.add,[_X**2 for _X in Xs]))
-        dn = (.1-.001j)*(R<size[-1]/5)
+    m = Bpm3d(shape = (256,256,256),n_volumes = 1)
 
-    m = Bpm3d(size = size, dn = dn)
-
-
-    phi, zern = m.aberr_at(center = (0,0,0))
+    u = m._propagate2()

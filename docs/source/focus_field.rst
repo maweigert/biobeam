@@ -1,5 +1,5 @@
-Input Beam patterns 
-===================
+Focus field calculations
+========================
 
 Gaussian/Bessel beams
 ---------------------

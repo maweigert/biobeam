@@ -1,6 +1,4 @@
 """
-The Beam GUI class that provides a simple Spimagine based Viewer
-to allow for some simple and easy light propagation demos
 
 
 mweigert@mpi-cbg.de
@@ -20,10 +18,7 @@ from PyQt4 import QtGui
 
 from spimagine.gui.mainwidget import MainWidget
 from spimagine import NumpyData, DataModel, read3dTiff
-
-
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
-from biobeam.beam_gui.fieldlistpanel import FieldListPanel
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,18 +44,11 @@ class BeamGui(QtGui.QWidget):
 
         self.prop_panel._propChanged.connect(self.on_prop_changed)
 
-
-        self.field_list_panel = FieldListPanel()
-
         self.free_prop = False
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.canvas, stretch=3)
-
-        #hbox.addWidget(self.prop_panel)
-        hbox.addWidget(self.field_list_panel)
-
-
+        hbox.addWidget(self.prop_panel)
 
         self.setLayout(hbox)
 
@@ -78,8 +66,6 @@ class BeamGui(QtGui.QWidget):
         self.prop_panel.edit.setText(str(self.properties))
 
         self.reset_dn(dn, size, simul_xy = simul_xy, simul_z = simul_z)
-
-        self.field_list_panel._stateChanged.connect(self.propagate)
 
     def check_dn(self):
         if self.prop_panel.check_dn.checkState():
@@ -139,57 +125,40 @@ class BeamGui(QtGui.QWidget):
         self.propagate()
 
 
-    # def propagate(self):
-    #     im = self.canvas.glWidget.renderer.dataImg
-    #
-    #     NA = self.properties["NA"]
-    #
-    #     if self.properties["beam_type"] == "beam":
-    #         u0  = self.bpm.u0_beam(NA= NA)
-    #     elif self.properties["beam_type"] == "cylindrical":
-    #         u0  = self.bpm.u0_cylindrical(NA= NA)
-    #     elif self.properties["beam_type"] == "lattice":
-    #         try:
-    #             NA1, NA2 = NA
-    #             print NA1, NA2
-    #         except:
-    #             QtGui.QMessageBox.information(None, 'Error',
-    #         "NA should be a list of two NAs, e.g. (.4,.5)")
-    #
-    #         sigma = self.properties.get("sigma",.1)
-    #         u0  = self.bpm.u0_lattice(NA1= NA1, NA2 = NA2, sigma = sigma)
-    #
-    #     elif self.properties["beam_type"] == "plane":
-    #         u0  = None
-    #
-    #     else:
-    #         u0  = None
-    #
-    #     if not u0 is None:
-    #         u0 *= 0.01/np.sqrt(np.mean(np.abs(u0)**2))
-    #         # u0 *= np.sqrt(self.dn_max)/np.sqrt(np.mean(np.abs(u0)**2))
-    #         u0 = np.roll(u0,self.properties["ypos"],0)
-    #
-    #     print np.amax(np.abs(np.imag(self.bpm.dn)))
-    #
-    #     print self.free_prop
-    #     self.bpm._propagate_to_img(u0 =  u0,im = im, free_prop = self.free_prop)
-    #
-    #     self.canvas.glWidget.refresh()
-
-
     def propagate(self):
         im = self.canvas.glWidget.renderer.dataImg
 
-        field = self.field_list_panel.fields[self.field_list_panel.combo.currentIndex()]
+        NA = self.properties["NA"]
 
-        u0 = field._get_input_field(self.bpm)
+        if self.properties["beam_type"] == "beam":
+            u0  = self.bpm.u0_beam(NA= NA)
+        elif self.properties["beam_type"] == "cylindrical":
+            u0  = self.bpm.u0_cylindrical(NA= NA)
+        elif self.properties["beam_type"] == "lattice":
+            try:
+                NA1, NA2 = NA
+                print NA1, NA2
+            except:
+                QtGui.QMessageBox.information(None, 'Error',
+            "NA should be a list of two NAs, e.g. (.4,.5)")
 
+            sigma = self.properties.get("sigma",.1)
+            u0  = self.bpm.u0_lattice(NA1= NA1, NA2 = NA2, sigma = sigma)
+
+        elif self.properties["beam_type"] == "plane":
+            u0  = None
+
+        else:
+            u0  = None
 
         if not u0 is None:
             u0 *= 0.01/np.sqrt(np.mean(np.abs(u0)**2))
+            # u0 *= np.sqrt(self.dn_max)/np.sqrt(np.mean(np.abs(u0)**2))
+            u0 = np.roll(u0,self.properties["ypos"],0)
 
+        print np.amax(np.abs(np.imag(self.bpm.dn)))
 
+        print self.free_prop
         self.bpm._propagate_to_img(u0 =  u0,im = im, free_prop = self.free_prop)
 
         self.canvas.glWidget.refresh()

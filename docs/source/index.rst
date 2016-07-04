@@ -15,12 +15,16 @@ biobeam - GPU accelerated simulation of light interacting with tissue
 			  
 .. toctree::
    :hidden:
+   :numbered:
    :maxdepth: 2
 
    intro
    installing
    basic
    beams
+   focus_field
+   forward_model
+   aberrations
    examples
 			  
    	 
