@@ -734,7 +734,7 @@ class Bpm3d(object):
 
     def aberr_at(self,NA = .4, center = (0,0,0), n_zern = 20,
                  n_integration_steps = 200):
-        """c = (cx,cy,cz) in realtive pixel coordinates wrt the center
+        """c = (cx,cy,cz) in relative pixel coordinates wrt the center
 
         returns phi, zern
         """
@@ -748,9 +748,9 @@ class Bpm3d(object):
         u0 = np.roll(np.roll(self.u0_beam(zfoc = 0.,NA=NA,
                                           n_integration_steps = n_integration_steps),cy,0),cx,1)
 
-        u_forth = self._propagate(u0 = u0,offset=offset, return_shape="last")
+        u_forth = self.propagate(u0 = u0,offset=offset, return_shape="last")
 
-        u_back = self._propagate(u0 = u_forth.conjugate(),free_prop = True,
+        u_back = self.propagate(u0 = u_forth.conjugate(),free_prop = True,
                                  offset=offset, return_shape="last")
         u_back = np.roll(np.roll(u_back,-cy,0),-cx,1)
 
@@ -758,7 +758,7 @@ class Bpm3d(object):
         return self._aberr_from_field(u_back,NA=NA)
 
 
-    def aberr_field_grid(self,NA , cxs, cys , cz, n_zern = 20,
+    def aberr_field_grid(self, NA , cxs, cys , cz, n_zern = 20,
                  n_integration_steps = 200):
         """
         cxs, cys are equally spaced 1d arrays defining the grid
