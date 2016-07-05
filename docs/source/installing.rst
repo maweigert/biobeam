@@ -14,6 +14,6 @@ After that you should be able to simple do
 
 ::
 
-   pip install biobeams
+   pip install biobeam
    
 

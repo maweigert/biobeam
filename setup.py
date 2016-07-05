@@ -17,8 +17,8 @@ setup(name='biobeam',
         'gputools',
     ],
 
-    package_data={"biobeam":['bpm/kernels/*.cl',
-                             'focus_field/kernels/*cl'],},
+    package_data={"biobeam":['core/kernels/*.cl'
+                             ],},
 
 )
 

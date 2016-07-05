@@ -119,7 +119,7 @@ html_theme = 'alabaster'
 #html_theme_options = {}
 html_theme_options = {
     "logo": "logo_biobeam_transp_red.png",
-    "description": "GPU accelerated beam propagation",
+    "description": "GPU accelerated tissue optics",
     "logo_name":"false",
     "logo_text_align":"center",
     "github_type": "follow",
