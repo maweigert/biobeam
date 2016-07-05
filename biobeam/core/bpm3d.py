@@ -205,8 +205,15 @@ class Bpm3d(object):
         self._plan = fft_plan((Ny,Nx), **self.fftplan_kwargs)
         self._buf_plane = OCLArray.empty((Ny, Nx), np.complex64)
         self._buf_H = OCLArray.empty((Ny, Nx), np.complex64)
-
         self._img_xy = OCLImage.empty((Ny,Nx), dtype = np.float32,num_channels =2)
+
+        # buffer for the weighted dn average
+        self.intens_g = OCLArray.empty((1,Ny,Nx),dtype=Bpm3d._real_type)
+        self.intens_dn_g = OCLArray.empty((1,Ny,Nx),dtype=Bpm3d._real_type)
+        self.intens_sum_g = OCLArray.empty((),dtype=Bpm3d._real_type)
+        self.intens_dn_sum_g = OCLArray.empty((),dtype=Bpm3d._real_type)
+
+        
 
         # the kernels
         self._kernel_compute_propagator = prog.compute_propagator
@@ -665,15 +672,8 @@ class Bpm3d(object):
                 self._copy_down_buf(self._buf_plane,u,0)
 
 
-
-
-
         dn0 = 0
 
-        intens_g = OCLArray.empty((1,Ny,Nx),dtype=Bpm3d._real_type)
-        intens_dn_g = OCLArray.empty((1,Ny,Nx),dtype=Bpm3d._real_type)
-        intens_sum_g = OCLArray.empty((),dtype=Bpm3d._real_type)
-        intens_dn_sum_g = OCLArray.empty((),dtype=Bpm3d._real_type)
 
         for i in xrange(Nz-1):
 
@@ -682,15 +682,14 @@ class Bpm3d(object):
                 self._mult_complex(self._buf_plane, self._buf_H)
                 fft(self._buf_plane, inplace = True, inverse = True, plan  = self._plan)
                 if not free_prop:
-
                     self._mult_dn(self._buf_plane,(i+dn_ind_start+(j+1.)/self.simul_z),dn0,
-                                  intens_g,
-                                  intens_dn_g)
+                                  self.intens_g,
+                                  self.intens_dn_g)
 
 
             if not self.dn is None and not free_prop:
                 if dn_mean_method =="local":
-                    self._kernel_reduction(intens_g,intens_dn_g, outs = [intens_sum_g,intens_dn_sum_g])
+                    self._kernel_reduction(self.intens_g,self.intens_dn_g, outs = [self.intens_sum_g,self.intens_dn_sum_g])
                     self._fill_propagator_buf(self.n0,intens_dn_sum_g,intens_sum_g)
 
 
