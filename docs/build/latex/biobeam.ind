@@ -1,0 +1,25 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter {Symbols}
+  \item \_\_init\_\_() (biobeam.Bpm3d method), \hyperpage{7}
+
+  \indexspace
+  \bigletter A
+  \item aberr\_at() (biobeam.Bpm3d method), \hyperpage{7}
+  \item aberr\_field\_grid() (biobeam.Bpm3d method), \hyperpage{7}
+
+  \indexspace
+  \bigletter B
+  \item Bpm3d (class in biobeam), \hyperpage{7}
+
+  \indexspace
+  \bigletter F
+  \item focus\_field\_beam() (in module biobeam), \hyperpage{10}
+  \item focus\_field\_beam\_plane() (in module biobeam), \hyperpage{10}
+  \item focus\_field\_cylindrical() (in module biobeam), \hyperpage{11}
+  \item focus\_field\_cylindrical\_plane() (in module biobeam), \hyperpage{12}
+  \item focus\_field\_lattice() (in module biobeam), \hyperpage{13}
+  \item focus\_field\_lattice\_plane() (in module biobeam), \hyperpage{14}
+
+\end{theindex}

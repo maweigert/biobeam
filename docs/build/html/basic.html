@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Basic Usage &mdash; biobeam 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="biobeam 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Input Beam patterns" href="beams.html" />
+    <link rel="prev" title="Installation" href="installing.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="basic-usage">
+<h1><a class="toc-backref" href="#id1">Basic Usage</a><a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#basic-usage" id="id1">Basic Usage</a><ul>
+<li><a class="reference internal" href="#beam-propagation" id="id2">Beam propagation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="beam-propagation">
+<h2><a class="toc-backref" href="#id2">Beam propagation</a><a class="headerlink" href="#beam-propagation" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="biobeam.Bpm3d">
+<em class="property">class </em><code class="descclassname">biobeam.</code><code class="descname">Bpm3d</code><span class="sig-paren">(</span><em>size=None</em>, <em>shape=None</em>, <em>units=None</em>, <em>dn=None</em>, <em>lam=0.5</em>, <em>n0=1.0</em>, <em>simul_xy=None</em>, <em>simul_z=1</em>, <em>n_volumes=1</em>, <em>enforce_subsampled=False</em>, <em>fftplan_kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the main class for gpu accelerated bpm propagation</p>
+<dl class="method">
+<dt id="biobeam.Bpm3d.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>size=None</em>, <em>shape=None</em>, <em>units=None</em>, <em>dn=None</em>, <em>lam=0.5</em>, <em>n0=1.0</em>, <em>simul_xy=None</em>, <em>simul_z=1</em>, <em>n_volumes=1</em>, <em>enforce_subsampled=False</em>, <em>fftplan_kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>size</strong> (<em>(Sx,Sy,Sz)</em>) &#8211; the size of the geometry in microns (Sx,Sy,Sz)</li>
+<li><strong>shape</strong> (<em>(Nx,Ny,Nz)</em>) &#8211; the shape of the geometry in pixels (Nx,Ny,Nz)</li>
+<li><strong>units</strong> (<em>(dx,dy,dz)</em>) &#8211; the voxelsizes in microns (dx,dy,dz)</li>
+<li><strong>dn</strong> (<em>ndarray (float32|complex64)</em>) &#8211; refractive index distribution, dn.shape != (Nz,Ny,Nx)</li>
+<li><strong>lam</strong> (<em>float</em>) &#8211; the wavelength in microns</li>
+<li><strong>n0</strong> (<em>float</em>) &#8211; the refractive index of the surrounding media</li>
+<li><strong>simul_xy</strong> (<em>(Nx,Ny,Nz), optional</em>) &#8211; the shape of the 2d computational geometry in pixels (Nx,Ny)
+(e.g. subsampling in xy)</li>
+<li><strong>simul_z</strong> (<em>int, optional</em>) &#8211; the subsampling factor along z</li>
+<li><strong>n_volumes</strong> (<em>int</em>) &#8211; splits the domain into chunks if GPU memory is not
+large enough (will be set automatically)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Bpm3d</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span><span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span><span class="n">lam</span> <span class="o">=</span> <span class="mf">0.488</span><span class="p">,</span><span class="n">n0</span> <span class="o">=</span> <span class="mf">1.33</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biobeam.Bpm3d.aberr_at">
+<code class="descname">aberr_at</code><span class="sig-paren">(</span><em>NA=0.4</em>, <em>center=(0</em>, <em>0</em>, <em>0)</em>, <em>n_zern=20</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.aberr_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>c = (cx,cy,cz) in realtive pixel coordinates wrt the center</p>
+<p>returns phi, zern</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biobeam.Bpm3d.aberr_field_grid">
+<code class="descname">aberr_field_grid</code><span class="sig-paren">(</span><em>NA</em>, <em>cxs</em>, <em>cys</em>, <em>cz</em>, <em>n_zern=20</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.aberr_field_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>cxs, cys are equally spaced 1d arrays defining the grid</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/logo_biobeam_transp.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=maweigert&repo=biobeam&type=follow&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Basic Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#beam-propagation">Beam propagation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beams.html">Input Beam patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html#some-examples">Some Examples</a></li>
+</ul>
+
+<hr />
+<p>
+<h2 class='logo'>
+<a href="https://github.com/maweigert/biobeam"> Github Page </a>
+</h2>
+</p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Martin Weigert.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/basic.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

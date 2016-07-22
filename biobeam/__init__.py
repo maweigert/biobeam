@@ -1,5 +1,12 @@
-from bpm import Bpm3d
-#from psf import psf_u0, psf_cylindrical_u0, psf, psf_cylindrical
+
+from biobeam.core import *
+
+from biobeam.beam_gui.volbeam import volbeam
 
 
-from beam_gui.volbeam import volbeam
+
+import logging
+logging.basicConfig(format='%(levelname)s:%(name)s | %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)

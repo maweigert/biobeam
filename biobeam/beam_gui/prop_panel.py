@@ -1,5 +1,5 @@
 """
-
+A widget displaying propties, e.g. for the beam input classes
 
 mweigert@mpi-cbg.de
 

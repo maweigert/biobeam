@@ -1,6 +1,5 @@
 """
-
-a special class that writes its output directly to a texture
+A special instance of the bpm3d class that can display the texture
 
 mweigert@mpi-cbg.de
 
@@ -9,11 +8,6 @@ mweigert@mpi-cbg.de
 import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device
 from gputools import fft, fft_plan
-
-
-#from biobeam.psf.psf_functions import psf_u0, psf_cylindrical_u0
-#from gputools import OCLReductionKernel
-
 
 from biobeam import Bpm3d
 
@@ -49,10 +43,6 @@ class Bpm3d_img(Bpm3d):
         self.result_im = OCLImage.empty(self.shape[::-1],dtype=np.float32)
 
 
-
-
-
-
     def _copy_down_img_to_img(self,im1, im2, zPos):
         Nx, Ny = self.shape[:2]
         self._kernel_im_to_im_intensity(self._queue, (Nx,Ny), None,
@@ -62,7 +52,6 @@ class Bpm3d_img(Bpm3d):
     def _propagate_to_img(self, u0 = None, im = None, free_prop = False, **kwargs):
         """
         """
-
 
         free_prop = free_prop or (self.dn is None)
 
@@ -83,7 +72,6 @@ class Bpm3d_img(Bpm3d):
 
         #copy the first plane
 
-
         self._img_xy.copy_buffer(self._buf_plane)
         self._copy_down_img_to_img(self._img_xy,im,0)
 
@@ -102,8 +90,8 @@ class Bpm3d_img(Bpm3d):
 
         return im
 
-        def __repr__(self):
-            return "Bpm3d class \nsize: \t%s\nshape:\t %s\nresolution: (%.4f,%.4f,%.4f)  "%(self.size,self.shape,self.dx,self.dy,self.dz)
+    def __repr__(self):
+        return "Beam GUI class \nsize: \t%s\nshape:\t %s\nresolution: (%.4f,%.4f,%.4f)  "%(self.size,self.shape,self.dx,self.dy,self.dz)
 
 
 if __name__ == '__main__':

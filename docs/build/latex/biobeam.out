@@ -1,0 +1,15 @@
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 1
+\BOOKMARK [0][-]{chapter.2}{Installation}{}% 2
+\BOOKMARK [0][-]{chapter.3}{Basic Usage}{}% 3
+\BOOKMARK [1][-]{section.3.1}{Beam propagation}{chapter.3}% 4
+\BOOKMARK [0][-]{chapter.4}{Input Beam patterns}{}% 5
+\BOOKMARK [1][-]{section.4.1}{Gaussian/Bessel beams}{chapter.4}% 6
+\BOOKMARK [1][-]{section.4.2}{Cylindrical Lens}{chapter.4}% 7
+\BOOKMARK [1][-]{section.4.3}{Bessel Lattices}{chapter.4}% 8
+\BOOKMARK [0][-]{chapter.5}{Examples}{}% 9
+\BOOKMARK [1][-]{section.5.1}{Plane wave scattered by sphere}{chapter.5}% 10
+\BOOKMARK [1][-]{section.5.2}{Light sheet through cell phantom}{chapter.5}% 11
+\BOOKMARK [1][-]{section.5.3}{Computing the psf inside a cell phantom}{chapter.5}% 12
+\BOOKMARK [1][-]{section.5.4}{Aberration from sphere}{chapter.5}% 13
+\BOOKMARK [0][-]{chapter.6}{Some Examples}{}% 14
+\BOOKMARK [0][-]{section*.28}{Index}{}% 15
