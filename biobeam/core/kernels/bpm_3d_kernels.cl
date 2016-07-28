@@ -194,8 +194,8 @@ __kernel void compute_propagator_buf(__global cfloat_t* H,
 								 const float dx,
 								 const float dy,
 								 const float dz,
-								 __constant float *buf1,
-								 __constant float *buf2
+								 __constant float *sum_dn_intens,
+								 __constant float *sum_intens
 								 ){
 
   int i = get_global_id(0);
@@ -207,11 +207,7 @@ __kernel void compute_propagator_buf(__global cfloat_t* H,
   float ky = 2.f*M_PI*FFTFREQ(j,Ny,dy);
 
 
-//  if ((i+j)==0)
-//   printf("%.7f %.7f \n",buf1[0],buf2[0]);
-
-
-  float n00 = n0+buf1[0]/buf2[0];
+  float n00 = n0+sum_dn_intens[0]/sum_intens[0];
 
   float tmp = n00*n00*k0*k0-kx*kx-ky*ky;
 

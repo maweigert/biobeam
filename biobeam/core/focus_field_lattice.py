@@ -95,14 +95,14 @@ def focus_field_lattice(shape = (128,128,128),
 
 
 
-    alpha1 = np.arcsin(NA1/n0)
-    alpha2 = np.arcsin(NA2/n0)
+    alpha1 = np.arcsin(1.*NA1/n0)
+    alpha2 = np.arcsin(1.*NA2/n0)
 
 
     if np.isscalar(kpoints):
         kxs, kys = np.arcsin(.5*(NA1+NA2)/n0)*_poly_points(kpoints)
     else:
-        kxs, kys = kpoints
+        kxs, kys = 1.*kpoints/n0
 
 
     p = OCLProgram(absPath("kernels/psf_lattice.cl"),
@@ -343,13 +343,13 @@ def focus_field_lattice_plane(shape = (256,256),
     Nx, Ny = shape
     dx, dy = units
 
-    alpha1 = np.arcsin(NA1/n0)
-    alpha2 = np.arcsin(NA2/n0)
+    alpha1 = np.arcsin(1.*NA1/n0)
+    alpha2 = np.arcsin(1.*NA2/n0)
 
     if np.isscalar(kpoints):
         kxs, kys = np.arcsin(.5*(NA1+NA2)/n0)*_poly_points(kpoints)
     else:
-        kxs, kys = kpoints
+        kxs, kys = 1.*kpoints/n0
 
 
 

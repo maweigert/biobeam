@@ -34,6 +34,12 @@ def absPath(myPath):
         return os.path.join(base_path, myPath)
 
 
+
+def _next_power_of_2(n):
+    return int(2**np.ceil(np.log2(n)))
+
+
+
 class Bpm3d(object):
     """
     the main class for gpu accelerated bpm propagation
@@ -49,7 +55,7 @@ class Bpm3d(object):
                  lam = .5,
                  n0 = 1.,
                  simul_xy = None,
-                 simul_z =1,
+                 simul_z = 1,
                  n_volumes = 1,
                  enforce_subsampled = False,
                  fftplan_kwargs = {}):
@@ -114,7 +120,7 @@ class Bpm3d(object):
         self.fftplan_kwargs = fftplan_kwargs
 
         if simul_xy is None:
-            simul_xy = shape[:2]
+            simul_xy = tuple([_next_power_of_2(n) for n in shape[:2]])
 
 
 
@@ -155,6 +161,8 @@ class Bpm3d(object):
 
         self.shape = shape
         self.size = size
+
+        self.units = tuple([s/(n-1.) for s, n in zip(size, shape)])
         self.lam = lam
         self.simul_xy = simul_xy
         self.simul_z = simul_z
@@ -369,7 +377,9 @@ class Bpm3d(object):
         return np.roll(np.roll(u0,cy,0),cx,1)
 
 
-    def u0_lattice(self, center = (0,0),zfoc =None ,  NA1 = .3, NA2 = .4,
+    def u0_lattice(self, center = (0,0),zfoc =None ,
+                   NA1 = .3, NA2 = .4,
+                   n_integration_steps = 300,
                    sigma = .1):
 
         if zfoc is None:
@@ -378,11 +388,23 @@ class Bpm3d(object):
         u0 = focus_field_lattice_plane(shape = self.simul_xy,
                             units = (self.dx, self.dy),
                       z = zfoc, NA1 = NA1, NA2 = NA2,
-                            sigma = sigma,
-                      lam = self.lam, n0 = self.n0)
+                        sigma = sigma,
+                      lam = self.lam, n0 = self.n0,
+                    n_integration_steps=n_integration_steps)
         cx,cy = center
         return np.roll(np.roll(u0,cy,0),cx,1)
 
+
+    def _fill_buf_plane(self, u0):
+        """fills buf plane from the array u0 with the correct sizes..."""
+
+        u0 = u0.astype(np.complex64,copy = False)
+
+        if u0.shape == self._buf_plane.shape:
+            self._buf_plane.write_array(u0)
+        else:
+            # interpolate
+            self._buf_plane.copy_image_resampled(OCLImage.from_array(u0))
 
 
     def _propagate(self, u0 = None, offset = 0,
@@ -491,6 +513,9 @@ class Bpm3d(object):
             free_prop = False | True
             dn_mean_method = "none", "global", "local"
         """
+
+
+
         if self.n_volumes==1:
             return self._propagate_single(u0 = u0,
                                           offset = offset,
@@ -525,8 +550,9 @@ class Bpm3d(object):
         if u0 is None:
             u0 = self.u0_plane()
 
+        self._fill_buf_plane(u0)
 
-        return self._propagate_core(u0 = u0,
+        return self._propagate_core(u0 = None,
                                     dn_ind_start=offset,
                                     dn_ind_end=self.shape[-1],
                                     dn_ind_offset=0,
@@ -555,6 +581,9 @@ class Bpm3d(object):
 
         if u0 is None:
             u0 = self.u0_plane()
+
+        self._fill_buf_plane(u0)
+
 
         Nz = self.shape[-1]
         dn_slices = []
@@ -634,7 +663,7 @@ class Bpm3d(object):
             dn_mean_method = "none", "global", "local"
         """
 
-        print dn_mean_method
+        print "mean method: ", dn_mean_method
 
         free_prop = free_prop or (self.dn is None)
 
@@ -655,8 +684,9 @@ class Bpm3d(object):
 
         assert dn_ind_start>=0
 
-        if not u0 is None:
-            self._buf_plane.write_array(u0.astype(np.complex64,copy=False))
+        # if not u0 is None:
+        #     print "huhu"
+        #     self._buf_plane.write_array(u0.astype(np.complex64,copy=False))
 
 
 
@@ -690,8 +720,8 @@ class Bpm3d(object):
             if not self.dn is None and not free_prop:
                 if dn_mean_method =="local":
                     self._kernel_reduction(self.intens_g,self.intens_dn_g, outs = [self.intens_sum_g,self.intens_dn_sum_g])
-                    self._fill_propagator_buf(self.n0,intens_dn_sum_g,intens_sum_g)
-
+                    self._fill_propagator_buf(self.n0,self.intens_dn_sum_g,self.intens_sum_g)
+                    #print self.intens_dn_sum_g.get(),self.intens_sum_g.get()
 
                 elif dn_mean_method =="global":
                     if self.dn_mean[i+dn_ind_start+dn_ind_offset] != dn0:
