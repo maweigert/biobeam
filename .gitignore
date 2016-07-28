@@ -1,6 +1,7 @@
 *pyc
 .idea/
 biobeam.egg-info/
-
+*.pyc
 dist/
 build/
+
