@@ -8,7 +8,7 @@ mweigert@mpi-cbg.de
 import numpy as np
 from biobeam import Bpm3d
 from gputools import convolve_spatial3
-
+from collections import namedtuple
 
 def _perm_inverse(perm):
     inverse = [0] * len(perm)
@@ -20,6 +20,8 @@ def _perm_inverse(perm):
 
 
 class SimLSM_Base(object):
+    _GridSaveObject = namedtuple("GridSave",["grid_dim","u0"])
+
     perm_illum = (2,0,1)
     perm_illum_inv= _perm_inverse(perm_illum)
 
@@ -74,7 +76,7 @@ class SimLSM_Base(object):
         self.units = self._bpm_detect.units
         self.Nx, self.Ny, self.Nz = self._bpm_detect.shape
         self.size = self._bpm_detect.size
-
+        self._last_grid_u0 = self._GridSaveObject(None,None)
         self._prepare_u0_all()
 
     def _trans_illum(self,obj, inv = False, copy=False, shape_style="zyx"):
@@ -170,8 +172,13 @@ class SimLSM_Base(object):
         xs = [-self._bpm_detect.simul_xy[0]/2+n*Nb_x+Nb_x/2 for n in xrange(n_x)]
         ys = [-self._bpm_detect.simul_xy[1]/2+n*Nb_y+Nb_y/2 for n in xrange(n_y)]
 
-        u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
-
+        # this is expensive, so memoize it if we use it several times after
+        if self._last_grid_u0.grid_dim == grid_dim:
+            print "using saved grid"
+            u0 = self._last_grid_u0.u0
+        else:
+            u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
+            self._last_grid_u0 = self._GridSaveObject(grid_dim,u0)
 
         u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
                                         return_shape="last",
@@ -217,10 +224,13 @@ class SimLSM_Base(object):
 
         offset_z = int(cz/self._bpm_detect.units[-1])
 
-        signal = (u*self.signal)[self.Nz/2+offset_z-zslice:self.Nz/2+offset_z+zslice]
+        s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
+        signal = u[s]*self.signal[s]
+
+        # signal = (u*self.signal)[self.Nz/2+offset_z-zslice:self.Nz/2+offset_z+zslice]
 
 
-
+        print "convolving: %s %s"%(signal.shape,psfs.shape)
         #convolve
         conv = convolve_spatial3(signal, psfs,
                                  grid_dim = (1,)+psf_grid_dim,
