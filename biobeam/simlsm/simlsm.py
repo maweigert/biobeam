@@ -17,9 +17,12 @@ def _perm_inverse(perm):
     return inverse
 
 
+
+
 class SimLSM_Base(object):
     perm_illum = (2,0,1)
     perm_illum_inv= _perm_inverse(perm_illum)
+
     def __init__(self, dn = None,
                  signal = None,
                  shape = None,
@@ -31,6 +34,7 @@ class SimLSM_Base(object):
                  NA_detect = .7,
                  n0 = 1.33,
                  n_volumes = 1,
+                 zfoc_illum = None,
                  simul_xy_illum = None,
                  simul_z_illum = 1,
                  simul_xy_detect = None,
@@ -41,16 +45,15 @@ class SimLSM_Base(object):
         self.dn = dn
         self.signal  = signal
 
-
-
-        self._bpm_illum = Bpm3d(size = size,
-                          shape = shape,
-                          dn = dn.transpose(self.perm_illum).copy(),
-                          units = units,
-                          lam = lam_illum,
-                          simul_xy=simul_xy_illum,
-                          simul_z=simul_z_illum,
-                          n_volumes=n_volumes,
+        self._bpm_illum = Bpm3d(
+                        size = self._trans_illum(size, shape_style="xyz"),
+                        shape = self._trans_illum(shape, shape_style="xyz"),
+                        dn = self._trans_illum(dn, copy = True),
+                        units = self._trans_illum(units, shape_style="xyz"),
+                        lam = lam_illum,
+                        simul_xy=simul_xy_illum,
+                        simul_z=simul_z_illum,
+                        n_volumes=n_volumes,
                           n0 = n0)
 
         self._bpm_detect = Bpm3d(size = size,
@@ -66,7 +69,7 @@ class SimLSM_Base(object):
 
         self.NA_illum =  NA_illum
         self.NA_detect =  NA_detect
-
+        self.zfoc_illum = zfoc_illum
         self.dn = self._bpm_detect.dn
         self.units = self._bpm_detect.units
         self.Nx, self.Ny, self.Nz = self._bpm_detect.shape
@@ -74,32 +77,60 @@ class SimLSM_Base(object):
 
         self._prepare_u0_all()
 
+    def _trans_illum(self,obj, inv = False, copy=False, shape_style="zyx"):
+        """handles the transformation between illumination and detection coords and shapes
 
-    def _prepare_u0_illum(self):
-        self.u0_illum = self._bpm_illum.u0_cylindrical(NA = self.NA_illum)
-        # raise NotImplementedError()
+        _trans_illum(dn).shape is volume shape in illumination space
+
+        """
+        perm = self.perm_illum_inv if inv else self.perm_illum
+        if obj is None:
+            return None
+        if isinstance(obj,np.ndarray):
+            if copy:
+                return obj.transpose(perm).copy()
+            else:
+                return obj.transpose(perm)
+        if isinstance(obj,(list, tuple)):
+            if shape_style=="zyx":
+                return type(obj)([obj[p] for p in perm])
+            elif shape_style=="xyz":
+                return type(obj)([obj[::-1][p] for p in perm])[::-1]
+            else:
+                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
+
+
+    def _prepare_u0_illum(self, zfoc = None ):
+        raise NotImplementedError()
 
     def _prepare_u0_all(self):
         self.u0_detect = self._bpm_detect.u0_beam(NA = self.NA_detect, zfoc = 0.)
-        self._prepare_u0_illum()
+        self._prepare_u0_illum(self.zfoc_illum)
 
 
     def propagate_illum(self,cz = 0, **bpm_kwargs):
         """cz in microns from center axis"""
 
+        # the illumination pattern is shifted
         bpm_kwargs.update({"return_comp":"intens"})
-        u0 = np.roll(self.u0_illum, int(cz/self._bpm_illum.dx) ,axis=0)
-        u = self._bpm_illum.propagate(u0,**bpm_kwargs)
+        offset = int(cz/self._bpm_illum.dy)
 
-        return u.transpose(self.perm_illum_inv)
+        assert abs(offset)<= self.u0_illum.shape[0]/2
+
+        print "offset: ",offset
+        u0 = np.roll(self.u0_illum, offset ,axis=0)
+        u = self._bpm_illum.propagate(u0,**bpm_kwargs)
+        return self._trans_illum(u, inv = True)
 
     def psf(self, c = [0,0,0], zslice = 16, **bpm_kwargs):
         """
         c = [0,10,-10] relative to center in microns
         c = [cz,cy,cx]
         """
-        u0 = np.roll(np.roll(self.u0_detect,int(c[1]/self._bpm_detect.dx),axis=0),
-                     int(c[2]/self._bpm_detect.dy),axis=1)
+        u0 = np.roll(np.roll(self.u0_detect,int(c[1]/self._bpm_detect.dy),axis=0),
+                     int(c[2]/self._bpm_detect.dx),axis=1)
 
 
         offset_z = int(c[0]/self._bpm_detect.units[-1])
@@ -129,12 +160,15 @@ class SimLSM_Base(object):
 
 
         offset_z = int(cz/self._bpm_detect.units[-1])
+
+
+
         n_y, n_x = grid_dim
         Nb_x, Nb_y = self._bpm_detect.simul_xy[0]/n_x, self._bpm_detect.simul_xy[1]/n_y
 
         # get the offset positions
         xs = [-self._bpm_detect.simul_xy[0]/2+n*Nb_x+Nb_x/2 for n in xrange(n_x)]
-        ys = [-self._bpm_detect.simul_xy[1]+n*Nb_y+Nb_y/2 for n in xrange(n_y)]
+        ys = [-self._bpm_detect.simul_xy[1]/2+n*Nb_y+Nb_y/2 for n in xrange(n_y)]
 
         u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
 
@@ -199,53 +233,5 @@ class SimLSM_Base(object):
         return conv
 
 
-
-
 if __name__ == '__main__':
-
-    # dn_illum = np.zeros((256,256,256))
-    #
-    # dn_detect = np.zeros((256,256,256))
-    # dn_detect[::16,::16,::16] = 1.
-
-    from spimagine import read3dTiff
-
-    dn = read3dTiff("/Users/mweigert/python/bpm_projects/forward_model/data/sample_elegans_512.tif")
-    
-    dn = dn.transpose(0,2,1).copy()
-
-    signal = 1.*dn.real
-
-    #some point sources
-    max_dn = np.amax(np.abs(dn))
-    np.random.seed(0)
-    for _ in range(4000):
-        k,j,i = np.random.randint(dn.shape[0]),np.random.randint(dn.shape[1]),np.random.randint(dn.shape[2])
-        signal[k,j,i] = 100.*max_dn
-
-
-
-    signal[146,::10,:] = 40.*max_dn
-
-    if not "m" in locals():
-        m = SimLSM_Base(dn = dn,
-                        signal = signal,
-                        NA_illum= .1,
-                        NA_detect=.7,
-                        units = (.2,)*3,
-                        #simul_xy_detect=(512,512),
-                        #simul_xy_illum=(512,512),
-                        n_volumes=2,
-                         )
-
-    u = m.propagate_illum(cz = -22.)
-
-    #h = m.psf((10.,0,0))
-    #hs = m.psf_grid_z(10,grid_dim = (16,16), zslice = 16)
-
-    im = m.simulate_image_z(cz=-22, zslice=16,
-                            psf_grid_dim=(16,16),
-                            conv_sub_blocks=(8,8),
-                            conv_pad_factor=3,
-                            )
-
+    pass

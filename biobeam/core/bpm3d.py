@@ -515,6 +515,8 @@ class Bpm3d(object):
         """
 
 
+        if offset<0 or offset >= self.shape[-1]:
+            raise ValueError("offset = %s has to be between 0 and %s"%(offset,self.shape[-1]))
 
         if self.n_volumes==1:
             return self._propagate_single(u0 = u0,

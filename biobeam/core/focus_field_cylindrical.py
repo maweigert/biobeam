@@ -106,8 +106,8 @@ def focus_field_cylindrical(shape = (128,128,128),
                  ey_g.data,
                  ez_g.data,
                  u_g.data,
-                 np.float32(-dy*(Ny-1)/2.),np.float32(dy*(Ny-1)/2.),
-                 np.float32(-dz*(Nz-1)/2.),np.float32(dz*(Nz-1)/2.),
+                 np.float32(-dy*(Ny/2)),np.float32((Nx-1-Nx/2)*dx),
+                 np.float32(-dz*(Nz/2)),np.float32((Nz-1-Nz/2)*dz),
                  np.float32(lam/n0),
                  np.float32(alpha))
 
@@ -199,7 +199,7 @@ def focus_field_cylindrical_plane(shape = (128,128),
 
     p.run_kernel("psf_cylindrical_plane",(Nx,Ny),None,
                  ex_g.data,
-                 np.float32(-dy*(Ny-1)/2.),np.float32(dy*(Ny-1)/2.),
+                 np.float32(-dy*(Ny/2)),np.float32((Ny-1-Ny/2)*dy),
                  np.float32(-z),
                  np.float32(lam/n0),
                  np.float32(alpha))

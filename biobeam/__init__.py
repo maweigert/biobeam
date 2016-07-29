@@ -2,7 +2,7 @@
 from biobeam.core import *
 
 from biobeam.beam_gui.volbeam import volbeam
-
+from biobeam.simlsm import SimLSM_Cylindrical, SimLSM_DSLM
 
 
 import logging
