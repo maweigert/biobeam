@@ -35,17 +35,37 @@ def get_gpu(N = 256, niter=100, sig = 1.):
 
     return np.array(rels)
 
-    
+
+def test_parseval():
+    Nx = 512
+    Nz  = 100
+    d = np.random.uniform(-1,1,(Nx,Nx)).astype(np.complex64)
+    d_g = OCLArray.from_array(d.astype(np.complex64))
+
+    s1, s2 = [],[]
+    for i in range(Nz):
+        print i
+        fft(d_g, inplace=True, fast_math=False)
+        fft(d_g, inverse = True,inplace=True,fast_math=False)
+        s1.append(np.sum(np.abs(d_g.get())**2))
+
+    for i in range(Nz):
+        print i
+        d = np.fft.fftn(d).astype(np.complex64)
+        d = np.fft.ifftn(d).astype(np.complex64)
+        s2.append(np.sum(np.abs(d)**2))
+
+    return s1, s2
 
 if __name__ == '__main__':
 
-    
-    N = 256
-
-
-    
-    r1 = get_np(N,20)
-    r2 = get_gpu(N,20)
-
-
-    
+    s1, s2 = test_parseval()
+    # N = 256
+    #
+    #
+    #
+    # r1 = get_np(N,20)
+    # r2 = get_gpu(N,20)
+    #
+    #
+    #
