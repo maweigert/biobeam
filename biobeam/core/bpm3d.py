@@ -200,8 +200,8 @@ class Bpm3d(object):
         # buffer for the weighted dn average
         self.intens_g = OCLArray.empty((1, Ny, Nx), dtype=Bpm3d._real_type)
         self.intens_dn_g = OCLArray.empty((1, Ny, Nx), dtype=Bpm3d._real_type)
-        self.intens_sum_g = OCLArray.empty((), dtype=Bpm3d._real_type)
-        self.intens_dn_sum_g = OCLArray.empty((), dtype=Bpm3d._real_type)
+        self.intens_sum_g = OCLArray.zeros((), dtype=Bpm3d._real_type)
+        self.intens_dn_sum_g = OCLArray.zeros((), dtype=Bpm3d._real_type)
 
         # the kernels
         self._kernel_compute_propagator = prog.compute_propagator
@@ -222,6 +222,11 @@ class Bpm3d(object):
         self._kernel_mult_dn_img_complex = prog.mult_dn_image_complex
         self._kernel_mult_dn_buf_complex = prog.mult_dn_complex
 
+        self._kernel_mult_dn_img_float_local = prog.mult_dn_image_local
+        self._kernel_mult_dn_buf_float_local = prog.mult_dn_local
+        self._kernel_mult_dn_img_complex_local = prog.mult_dn_image_complex_local
+        self._kernel_mult_dn_buf_complex_local = prog.mult_dn_complex_local
+
         self._kernel_reduction = OCLMultiReductionKernel(np.float32,
                                                          neutral="0", reduce_expr="a+b",
                                                          map_exprs=["a[i]", "b[i]"],
@@ -229,42 +234,35 @@ class Bpm3d(object):
 
         self._fill_propagator(self.n0)
 
-    def _mult_dn(self, buf, zPos, dn0, buf_sum1, buf_sum2):
+    def _mult_dn(self, buf, zPos, dn0):
         if (self._is_subsampled and self.dn.dtype==Bpm3d._complex_type) or \
                 (not self._is_subsampled and self._buf_dn.dtype==Bpm3d._complex_type):
-            self._mult_dn_complex(buf, zPos, dn0, buf_sum1, buf_sum2)
+            self._mult_dn_complex(buf, zPos, dn0)
         else:
-            self._mult_dn_float(buf, zPos, dn0, buf_sum1, buf_sum2)
+            self._mult_dn_float(buf, zPos, dn0)
 
-    def _mult_dn_float(self, buf, zPos, dn0, buf_sum1, buf_sum2):
+    def _mult_dn_float(self, buf, zPos, dn0):
         if self._is_subsampled:
             self._kernel_mult_dn_img_float(self._queue, self.simul_xy, None,
                                            buf.data, self._im_dn,
                                            np.float32(self.k0*self.dz),
                                            np.float32(dn0),
-                                           np.float32(zPos/(self.shape[-1]-1.)),
-                                           buf_sum1.data,
-                                           buf_sum2.data,
-                                           )
+                                           np.float32(zPos/(self.shape[-1]-1.)))
         else:
             Nx, Ny = self.shape[:2]
             self._kernel_mult_dn_buf_float(self._queue, self.shape[:2], None,
                                            buf.data, self._buf_dn.data,
                                            np.float32(self.k0*self.dz),
                                            np.float32(dn0),
-                                           np.int32(zPos*Nx*Ny),
-                                           buf_sum1.data,
-                                           buf_sum2.data, )
+                                           np.int32(zPos*Nx*Ny))
 
-    def _mult_dn_complex(self, buf, zPos, dn0, buf_sum1, buf_sum2):
+    def _mult_dn_complex(self, buf, zPos, dn0):
         if self._is_subsampled:
             self._kernel_mult_dn_img_complex(self._queue, self.simul_xy, None,
                                              buf.data, self._im_dn,
                                              np.float32(self.k0*self.dz),
                                              np.float32(dn0),
-                                             np.float32(zPos/(self.shape[-1]-1.)),
-                                             buf_sum1.data,
-                                             buf_sum2.data, )
+                                             np.float32(zPos/(self.shape[-1]-1.)))
 
         else:
             Nx, Ny = self.shape[:2]
@@ -272,6 +270,55 @@ class Bpm3d(object):
                                              buf.data, self._buf_dn.data,
                                              np.float32(self.k0*self.dz),
                                              np.float32(dn0),
+                                             np.int32(zPos*Nx*Ny))
+
+    def _mult_dn_local(self, buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2):
+        if (self._is_subsampled and self.dn.dtype==Bpm3d._complex_type) or \
+                (not self._is_subsampled and self._buf_dn.dtype==Bpm3d._complex_type):
+            self._mult_dn_complex_local(buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2)
+        else:
+            self._mult_dn_float_local(buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2)
+
+    def _mult_dn_float_local(self, buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2):
+        if self._is_subsampled:
+            self._kernel_mult_dn_img_float_local(self._queue, self.simul_xy, None,
+                                           buf.data, self._im_dn,
+                                           np.float32(self.k0*self.dz),
+                                           buf_g_sum.data,
+                                           buf_dng_sum.data,
+                                           np.float32(zPos/(self.shape[-1]-1.)),
+                                           buf_sum1.data,
+                                           buf_sum2.data,
+                                           )
+        else:
+            Nx, Ny = self.shape[:2]
+            self._kernel_mult_dn_buf_float_local(self._queue, self.shape[:2], None,
+                                           buf.data, self._buf_dn.data,
+                                           np.float32(self.k0*self.dz),
+                                           buf_g_sum.data,
+                                           buf_dng_sum.data,
+                                           np.int32(zPos*Nx*Ny),
+                                           buf_sum1.data,
+                                           buf_sum2.data, )
+
+    def _mult_dn_complex_local(self, buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2):
+        if self._is_subsampled:
+            self._kernel_mult_dn_img_complex_local(self._queue, self.simul_xy, None,
+                                             buf.data, self._im_dn,
+                                             np.float32(self.k0*self.dz),
+                                             buf_g_sum.data,
+                                             buf_dng_sum.data,
+                                             np.float32(zPos/(self.shape[-1]-1.)),
+                                             buf_sum1.data,
+                                             buf_sum2.data, )
+
+        else:
+            Nx, Ny = self.shape[:2]
+            self._kernel_mult_dn_buf_complex_local(self._queue, self.shape[:2], None,
+                                             buf.data, self._buf_dn.data,
+                                             np.float32(self.k0*self.dz),
+                                             buf_g_sum.data,
+                                             buf_dng_sum.data,
                                              np.int32(zPos*Nx*Ny),
                                              buf_sum1.data,
                                              buf_sum2.data, )
@@ -660,6 +707,15 @@ class Bpm3d(object):
 
         dn0 = 0
 
+        if dn_mean_method=="local" and not self.dn is None and not free_prop:
+            self.intens_sum_g = OCLArray.from_array(np.ones(1,dtype=Bpm3d._real_type))
+            self.intens_dn_sum_g = OCLArray.from_array(self.dn_mean[dn_ind_start+dn_ind_offset]*
+                                                       np.ones(1,dtype=Bpm3d._real_type))
+            #self._fill_propagator_buf(self.n0, self.intens_dn_sum_g, self.intens_sum_g)
+
+
+        self._fill_propagator(self.n0)
+
         for i in xrange(Nz-1):
 
             for j in xrange(self.simul_z):
@@ -667,16 +723,23 @@ class Bpm3d(object):
                 self._mult_complex(self._buf_plane, self._buf_H)
                 fft(self._buf_plane, inplace=True, inverse=True, plan=self._plan)
                 if not free_prop:
-                    self._mult_dn(self._buf_plane, (i+dn_ind_start+(j+1.)/self.simul_z), dn0,
-                                  self.intens_g,
-                                  self.intens_dn_g)
+                    #FIXME here we make  a slight error for the first time point, as we
+                    #FIXME set dn0 first and the compute the new propagator
+                    if dn_mean_method=="local":
+                        self._mult_dn_local(self._buf_plane, (i+dn_ind_start+(j+1.)/self.simul_z),
+                                            self.intens_sum_g,
+                                            self.intens_dn_sum_g,
+                                            self.intens_g,
+                                            self.intens_dn_g)
+                    else:
+                        self._mult_dn(self._buf_plane, (i+dn_ind_start+(j+1.)/self.simul_z), dn0)
 
             if not self.dn is None and not free_prop:
                 if dn_mean_method=="local":
                     self._kernel_reduction(self.intens_g, self.intens_dn_g,
                                            outs=[self.intens_sum_g, self.intens_dn_sum_g])
                     self._fill_propagator_buf(self.n0, self.intens_dn_sum_g, self.intens_sum_g)
-                    # print self.intens_dn_sum_g.get(),self.intens_sum_g.get()
+                    print "mean dn: ",self.intens_dn_sum_g.get()/self.intens_sum_g.get()
 
                 elif dn_mean_method=="global":
                     if self.dn_mean[i+dn_ind_start+dn_ind_offset]!=dn0:
@@ -797,7 +860,7 @@ class Bpm3d(object):
 
     def __repr__(self):
         return "Bpm3d class \nsize: \t%s\nshape:\t %s\nresolution: (%.4f,%.4f,%.4f)  "%(
-        self.size, self.shape, self.dx, self.dy, self.dz)
+            self.size, self.shape, self.dx, self.dy, self.dz)
 
 
 if __name__=='__main__':

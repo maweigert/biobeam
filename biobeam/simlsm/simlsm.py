@@ -126,7 +126,7 @@ class SimLSM_Base(object):
         u = self._bpm_illum.propagate(u0,**bpm_kwargs)
         return self._trans_illum(u, inv = True)
 
-    def psf(self, c = [0,0,0], zslice = 16, **bpm_kwargs):
+    def psf(self, c = [0,0,0], zslice = 16, with_sheet = False, **bpm_kwargs):
         """
         c = [0,10,-10] relative to center in microns
         c = [cz,cy,cx]
@@ -137,7 +137,7 @@ class SimLSM_Base(object):
 
         offset_z = int(c[0]/self._bpm_detect.units[-1])
 
-
+        print offset_z
         u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
                                         return_shape="last",**bpm_kwargs)
 
@@ -146,13 +146,17 @@ class SimLSM_Base(object):
                                        free_prop=True,
                                        #offset=Nz/2+c[0],
                                        return_shape="full",return_comp="intens",
-                                        **bpm_kwargs)
+                                        **bpm_kwargs)[::-1]
+
+        if with_sheet:
+            sheet = self.propagate_illum(c[0], **bpm_kwargs)
+            u2 *= sheet
 
 
         if zslice is None:
-            return u2[::-1]
+            return u2
         else:
-            u2 = np.roll(u2,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
+            u2 = np.roll(u2,-offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
             return u2
 
 
@@ -206,10 +210,6 @@ class SimLSM_Base(object):
             u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
             return u
 
-        # if with_sheet:
-        #     sheet = self.propagate(z)
-        #     h *= abs(sheet)**2
-        # return h
 
     def simulate_image_z(self, cz = 0,
                          psf_grid_dim = (8,8),
@@ -217,6 +217,7 @@ class SimLSM_Base(object):
                          conv_sub_blocks = (1,1),
                          conv_pad_factor = 2,
                          conv_mode = "wrap",
+                         with_sheet = True,
                          **bpm_kwargs):
         if self.signal is None:
             raise ValueError("no signal defined (signal)!")
@@ -227,7 +228,7 @@ class SimLSM_Base(object):
         print "illuminating at z= %s mu"%cz
 
 
-        u = self.propagate_illum(cz = cz,**bpm_kwargs)
+
         psfs = self.psf_grid_z(cz = cz, grid_dim=psf_grid_dim, zslice=zslice,**bpm_kwargs)
 
         offset_z = int(cz/self._bpm_detect.units[-1])
@@ -235,9 +236,11 @@ class SimLSM_Base(object):
         assert offset_z+zslice<self.Nz and self.Nz/2+offset_z-zslice>=0
 
         s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
-        signal = u[s]*self.signal[s]
 
-        # signal = (u*self.signal)[self.Nz/2+offset_z-zslice:self.Nz/2+offset_z+zslice]
+        signal = self.signal[s]
+        if with_sheet:
+            u = self.propagate_illum(cz = cz,**bpm_kwargs)
+            signal = u[s]*self.signal[s]
 
 
         print "convolving: %s %s"%(signal.shape,psfs.shape)

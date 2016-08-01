@@ -30,7 +30,7 @@ if __name__=='__main__':
                                signal=signal,
                                NA_illum=.4,
                                NA_detect=.7,
-                               units=(.05,)*3,
+                               units=(.1,)*3,
                                n0=1.33,
                                # simul_xy_detect=(512,512),
                                # simul_xy_illum=(512,512),
@@ -39,8 +39,8 @@ if __name__=='__main__':
     # u1 = m.propagate_illum(cz=-30)
     # u2 = m.propagate_illum(cz=30)
 
-    # h = m.psf((0.,0,0))
-    from time import time
-    t = time()
-    hs = m.psf_grid_z(10,grid_dim = (8,16), zslice = 16)
-    print time()-t
+    h = m.psf((10.,0,0))
+    # from time import time
+    # t = time()
+    # hs = m.psf_grid_z(10,grid_dim = (8,16), zslice = 16)
+    # print time()-t
