@@ -18,7 +18,8 @@ def time_single(dshape, sub_fac = 1, free_prop = True, fast_math = True):
 
     m = Bpm3d(dn = dn, shape = dshape, units = (.1,)*3,
               simul_xy = simul_xy,
-              simul_z = simul_z)
+              simul_z = simul_z,
+              fftplan_kwargs={"fast_math":fast_math})
 
 
     t = time()
@@ -26,7 +27,7 @@ def time_single(dshape, sub_fac = 1, free_prop = True, fast_math = True):
     t = time()-t
 
     geom = simul_xy + (dshape[0]*sub_fac,)
-    print "geometry %s\tfree_prop = %s\tfast_math = %s\t\ntime = %.2f ms"%(geom, free_prop, fast_math,1000.*t)
+    print "geometry %s / %s\n    free_prop = %s\tfast_math = %s\t\n    time = %.2f ms"%(dshape[::-1],geom, free_prop, fast_math,1000.*t)
 
 
 
