@@ -5,11 +5,8 @@ mweigert@mpi-cbg.de
 
 """
 
-from PyQt4 import  QtGui, QtCore
-
+from PyQt4 import QtGui, QtCore
 from biobeam.beam_gui.fieldpanel import FieldPanel
-
-
 from biobeam.beam_gui.fieldstate import CylindricalState, BeamState, LatticeState
 
 
@@ -22,12 +19,9 @@ class FieldListPanel(QtGui.QWidget):
         self.resize(50, 300)
         self.initUI()
 
-
     def initUI(self):
 
-
         vbox = QtGui.QVBoxLayout()
-
 
         self.fields = [CylindricalState(),
                        BeamState(),
@@ -35,12 +29,8 @@ class FieldListPanel(QtGui.QWidget):
 
         self.combo = QtGui.QComboBox()
 
-
-
         for field in self.fields:
             self.combo.addItem(field.name)
-
-
 
         vbox.addWidget(self.combo)
 
@@ -57,7 +47,6 @@ class FieldListPanel(QtGui.QWidget):
         vbox.addStretch()
         self.setLayout(vbox)
 
-
         self.combo.currentIndexChanged.connect(self.onIndexChanged)
 
         self.setStyleSheet("""
@@ -67,7 +56,6 @@ class FieldListPanel(QtGui.QWidget):
         }
         """)
 
-
     def onIndexChanged(self, index):
         for pan in self.panels:
             pan.hide()
@@ -75,18 +63,15 @@ class FieldListPanel(QtGui.QWidget):
         self._stateChanged.emit(True)
 
 
-
-if __name__ == '__main__':
+if __name__=='__main__':
     import sys
+
     app = QtGui.QApplication(sys.argv)
 
     win = FieldListPanel()
-
 
     win.show()
 
     win.raise_()
 
-
     sys.exit(app.exec_())
-

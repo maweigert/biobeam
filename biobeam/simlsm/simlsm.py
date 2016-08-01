@@ -136,6 +136,8 @@ class SimLSM_Base(object):
 
 
         offset_z = int(c[0]/self._bpm_detect.units[-1])
+
+
         u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
                                         return_shape="last",**bpm_kwargs)
 
@@ -146,10 +148,11 @@ class SimLSM_Base(object):
                                        return_shape="full",return_comp="intens",
                                         **bpm_kwargs)
 
+
         if zslice is None:
-            return u2
+            return u2[::-1]
         else:
-            u2 = np.roll(u2,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
+            u2 = np.roll(u2,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
             return u2
 
 
@@ -177,7 +180,11 @@ class SimLSM_Base(object):
             print "using saved grid"
             u0 = self._last_grid_u0.u0
         else:
-            u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
+            #u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
+
+            u0_y = reduce(np.add,[np.roll(self.u0_detect,_y,axis=0) for _y in ys])
+            u0 = reduce(np.add,[np.roll(u0_y,_x,axis=1) for _x in xs])
+
             self._last_grid_u0 = self._GridSaveObject(grid_dim,u0)
 
         u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
@@ -194,9 +201,9 @@ class SimLSM_Base(object):
                                        **bpm_kwargs)
 
         if zslice is None:
-            return u
+            return u[::-1]
         else:
-            u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
+            u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
             return u
 
         # if with_sheet:
@@ -214,6 +221,7 @@ class SimLSM_Base(object):
         if self.signal is None:
             raise ValueError("no signal defined (signal)!")
 
+
         # illumination
 
         print "illuminating at z= %s mu"%cz
@@ -223,6 +231,8 @@ class SimLSM_Base(object):
         psfs = self.psf_grid_z(cz = cz, grid_dim=psf_grid_dim, zslice=zslice,**bpm_kwargs)
 
         offset_z = int(cz/self._bpm_detect.units[-1])
+
+        assert offset_z+zslice<self.Nz and self.Nz/2+offset_z-zslice>=0
 
         s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
         signal = u[s]*self.signal[s]
