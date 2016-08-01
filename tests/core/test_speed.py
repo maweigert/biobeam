@@ -27,7 +27,8 @@ def time_single(dshape, sub_fac = 1, free_prop = True, fast_math = True):
     t = time()-t
 
     geom = simul_xy + (dshape[0]*sub_fac,)
-    print "geometry %s / %s\n    free_prop = %s\tfast_math = %s\t\n    time = %.2f ms"%(dshape[::-1],geom, free_prop, fast_math,1000.*t)
+    print "geometry %s / %s\n    free_prop = %s\tfast_math = %s\t\n    time = %.2f ms"\
+          %(dshape[::-1],geom, free_prop, fast_math,1000.*t)
 
 
 

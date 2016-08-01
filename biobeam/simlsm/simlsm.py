@@ -40,7 +40,8 @@ class SimLSM_Base(object):
                  simul_xy_illum = None,
                  simul_z_illum = 1,
                  simul_xy_detect = None,
-                 simul_z_detect = 1):
+                 simul_z_detect = 1,
+                 fftplan_kwargs = {}):
 
 
 
@@ -56,7 +57,8 @@ class SimLSM_Base(object):
                         simul_xy=simul_xy_illum,
                         simul_z=simul_z_illum,
                         n_volumes=n_volumes,
-                          n0 = n0)
+                          n0 = n0,
+        fftplan_kwargs=fftplan_kwargs)
 
         self._bpm_detect = Bpm3d(size = size,
                           shape = shape,
@@ -66,7 +68,8 @@ class SimLSM_Base(object):
                           simul_xy=simul_xy_detect,
                           simul_z=simul_z_detect,
                           n_volumes=n_volumes,
-                          n0 = n0)
+                          n0 = n0,
+                        fftplan_kwargs=fftplan_kwargs)
 
 
         self.NA_illum =  NA_illum
