@@ -134,11 +134,11 @@ class SimLSM_Base(object):
         c = [0,10,-10] relative to center in microns
         c = [cz,cy,cx]
         """
-        u0 = np.roll(np.roll(self.u0_detect,int(c[1]/self._bpm_detect.dy),axis=0),
-                     int(c[2]/self._bpm_detect.dx),axis=1)
+        u0 = np.roll(np.roll(self.u0_detect,int(np.round(c[1]/self._bpm_detect.dy)),axis=0),
+                     np.round(int(c[2]/self._bpm_detect.dx)),axis=1)
 
 
-        offset_z = int(c[0]/self._bpm_detect.units[-1])
+        offset_z = int(np.round(c[0]/self._bpm_detect.units[-1]))
 
         print offset_z
         u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
@@ -171,7 +171,7 @@ class SimLSM_Base(object):
         print "computing psf grid %s..."%(str(grid_dim))
 
 
-        offset_z = int(cz/self._bpm_detect.units[-1])
+        offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
 
 
 
@@ -179,8 +179,8 @@ class SimLSM_Base(object):
         Nb_x, Nb_y = self._bpm_detect.simul_xy[0]/n_x, self._bpm_detect.simul_xy[1]/n_y
 
         # get the offset positions
-        xs = [-self._bpm_detect.simul_xy[0]/2+n*Nb_x+Nb_x/2 for n in xrange(n_x)]
-        ys = [-self._bpm_detect.simul_xy[1]/2+n*Nb_y+Nb_y/2 for n in xrange(n_y)]
+        xs = np.round([-self._bpm_detect.simul_xy[0]/2+n*Nb_x+Nb_x/2 for n in xrange(n_x)]).astype(np.int)
+        ys = np.round([-self._bpm_detect.simul_xy[1]/2+n*Nb_y+Nb_y/2 for n in xrange(n_y)]).astype(np.int)
 
         # this is expensive, so memoize it if we use it several times after
         if self._last_grid_u0.grid_dim == grid_dim:
@@ -234,7 +234,7 @@ class SimLSM_Base(object):
 
         psfs = self.psf_grid_z(cz = cz, grid_dim=psf_grid_dim, zslice=zslice,**bpm_kwargs)
 
-        offset_z = int(cz/self._bpm_detect.units[-1])
+        offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
 
         assert offset_z+zslice<self.Nz and self.Nz/2+offset_z-zslice>=0
 
