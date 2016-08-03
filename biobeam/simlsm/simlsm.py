@@ -164,7 +164,9 @@ class SimLSM_Base(object):
 
 
 
-    def psf_grid_z(self, cz = 0, grid_dim = (4,4), zslice = 16,**bpm_kwargs):
+    def psf_grid_z(self, cz = 0, grid_dim = (4,4), zslice = 16,
+                   with_sheet = False,
+                   **bpm_kwargs):
         """cz in microns relative to the center
         """
 
@@ -205,12 +207,18 @@ class SimLSM_Base(object):
                                        #offset=Nz/2+c[0],
                                        return_shape="full",
                                        return_comp="intens",
-                                       **bpm_kwargs)
+                                       **bpm_kwargs)[::-1]
+
+        if with_sheet:
+            sheet = self.propagate_illum(cz, **bpm_kwargs)
+            u *= sheet
+
 
         if zslice is None:
-            return u[::-1]
+            return u
         else:
-            u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
+            u = np.roll(u,-offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
+            #u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
             return u
 
 
@@ -221,7 +229,7 @@ class SimLSM_Base(object):
                          conv_sub_blocks = (1,1),
                          conv_pad_factor = 2,
                          conv_mode = "wrap",
-                         mode = "illum",
+                         mode = "product",
                          **bpm_kwargs):
         """
         mode = ["product","illum"]
@@ -251,12 +259,12 @@ class SimLSM_Base(object):
 
         s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
 
-        signal = self.signal[s].copy()
+        signal = 1.*self.signal[s].copy()
 
         u = self.propagate_illum(cz = cz,**bpm_kwargs)
 
 
-
+        return u[s], psfs, signal
         if mode =="psf_product":
             psfs = psfs*u[s]
         else:
