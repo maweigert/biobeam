@@ -4,11 +4,13 @@
    contain the root `toctree` directive.
 
 
-biobeam - GPU accelerated simulation of light interacting with tissue
-=====================================================================
+..
+   biobeam- GPU accelerated simulation of light interacting with tissue
+biobeam - a wave optical renderer to mimick image-formation in tissue microscopy
+======================================================================================================
 
 
-.. image:: _static/bessel_beam.jpg
+.. image:: _static/droso_sim.png
 
 
 

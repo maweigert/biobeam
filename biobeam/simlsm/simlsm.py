@@ -215,24 +215,35 @@ class SimLSM_Base(object):
 
 
     def simulate_image_z(self, cz = 0,
+                         signal = None,
                          psf_grid_dim = (8,8),
                          zslice = 16,
                          conv_sub_blocks = (1,1),
                          conv_pad_factor = 2,
                          conv_mode = "wrap",
-                         with_sheet = True,
+                         mode = "illum",
                          **bpm_kwargs):
-        if self.signal is None:
+        """
+        mode = ["product","illum"]
+
+        """
+        if not mode in ["product","illum"]:
+            raise KeyError("unknown mode: %s"%mode)
+
+        if signal is None:
+            signal = self.signal
+        if signal is None:
             raise ValueError("no signal defined (signal)!")
 
 
         # illumination
 
-        print "illuminating at z= %s mu"%cz
+        print "illuminating at z= %s mu with psf mode %s"%(cz,mode)
 
-
-
-        psfs = self.psf_grid_z(cz = cz, grid_dim=psf_grid_dim, zslice=zslice,**bpm_kwargs)
+        psfs = self.psf_grid_z(cz = cz,
+                               grid_dim=psf_grid_dim,
+                               zslice=zslice,
+                               **bpm_kwargs)
 
         offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
 
@@ -240,21 +251,26 @@ class SimLSM_Base(object):
 
         s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
 
-        signal = self.signal[s]
-        if with_sheet:
-            u = self.propagate_illum(cz = cz,**bpm_kwargs)
-            signal = u[s]*self.signal[s]
+        signal = self.signal[s].copy()
 
+        u = self.propagate_illum(cz = cz,**bpm_kwargs)
+
+
+
+        if mode =="psf_product":
+            psfs = psfs*u[s]
+        else:
+            signal = signal*u[s]
 
         print "convolving: %s %s"%(signal.shape,psfs.shape)
         #convolve
-        conv = convolve_spatial3(signal, psfs,
+        conv = convolve_spatial3(signal.copy(), psfs.copy(),
                                  grid_dim = (1,)+psf_grid_dim,
                                  sub_blocks=(1,)+conv_sub_blocks,
                                  pad_factor=conv_pad_factor,
                                  mode = conv_mode)
 
-
+        #return u, self.signal[s].copy(), signal, psfs, conv
 
         return conv
 
