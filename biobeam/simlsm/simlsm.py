@@ -264,7 +264,7 @@ class SimLSM_Base(object):
         u = self.propagate_illum(cz = cz,**bpm_kwargs)
 
 
-        return u[s], psfs, signal
+        #return u[s], psfs, signal
         if mode =="psf_product":
             psfs = psfs*u[s]
         else:
