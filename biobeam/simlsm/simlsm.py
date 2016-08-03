@@ -259,7 +259,7 @@ class SimLSM_Base(object):
 
         s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
 
-        signal = 1.*self.signal[s].copy()
+        signal = 1.*signal[s].copy()
 
         u = self.propagate_illum(cz = cz,**bpm_kwargs)
 
