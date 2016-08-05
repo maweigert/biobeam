@@ -31,19 +31,18 @@ Plane wave scattered by sphere
 
 
 
-Light sheet through cell phantom
---------------------------------
+..
+   Light sheet through cell phantom
+   --------------------------------
 
 
-Computing the psf inside a cell phantom
----------------------------------------
+   Computing the psf inside a cell phantom
+   ---------------------------------------
+
+
+   Aberration from sphere
+   ----------------------
 
 
 
-Aberration from sphere
-----------------------
 
-
-
-
-.. include:: example_simple.rst

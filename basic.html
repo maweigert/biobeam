@@ -40,8 +40,23 @@
             
   <div class="section" id="basic-usage">
 <h1>3. Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="beam-propagation">
-<h2>3.1. Beam propagation<a class="headerlink" href="#beam-propagation" title="Permalink to this headline">¶</a></h2>
+<p>biobeam makes use of highly parallelized propagation of light fields through biological media. What biobeam is unique for is the simulation of the image formation-process in tissue microscopy. For this, the user is free not to care about the details of how different simulations are combined to result in the final 3D images.</p>
+<p>Nevertheless, the basic, GPU accelerated wave-optical routines of biobeam remain individually accessible as documented here.</p>
+<div class="section" id="gpu-accelerated-beam-propagation">
+<h2>3.1. GPU accelerated beam propagation<a class="headerlink" href="#gpu-accelerated-beam-propagation" title="Permalink to this headline">¶</a></h2>
+<p><em>biobeam</em> uses a GPU compatible beam propagation implementation with the precise, spherical propagator. Most fundamentally the associated routines are accessible by the <strong>Bpm3d</strong> class.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">biobeam</span>
+
+<span class="n">dn</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">Bpm3d</span><span class="p">(</span><span class="n">dn</span> <span class="o">=</span> <span class="n">dn</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span> <span class="n">lam</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c1"># propagate a plane wave and return the intensity</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">_propagate</span><span class="p">()</span>
+
+<span class="c1"># propagate a bessel beam</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">_propagate</span><span class="p">(</span><span class="n">u0</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">u0_beam</span><span class="p">(</span><span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">42</span><span class="p">)))</span>
+</pre></div>
+</div>
 <dl class="class">
 <dt id="biobeam.Bpm3d">
 <em class="property">class </em><code class="descclassname">biobeam.</code><code class="descname">Bpm3d</code><span class="sig-paren">(</span><em>size=None</em>, <em>shape=None</em>, <em>units=None</em>, <em>dn=None</em>, <em>lam=0.5</em>, <em>n0=1.0</em>, <em>simul_xy=None</em>, <em>simul_z=1</em>, <em>n_volumes=1</em>, <em>enforce_subsampled=False</em>, <em>fftplan_kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d" title="Permalink to this definition">¶</a></dt>
@@ -79,7 +94,7 @@ large enough (will be set automatically)</li>
 <dl class="method">
 <dt id="biobeam.Bpm3d.aberr_at">
 <code class="descname">aberr_at</code><span class="sig-paren">(</span><em>NA=0.4</em>, <em>center=(0</em>, <em>0</em>, <em>0)</em>, <em>n_zern=20</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.aberr_at" title="Permalink to this definition">¶</a></dt>
-<dd><p>c = (cx,cy,cz) in realtive pixel coordinates wrt the center</p>
+<dd><p>c = (cx,cy,cz) in relative pixel coordinates wrt the center</p>
 <p>returns phi, zern</p>
 </dd></dl>
 
@@ -87,6 +102,18 @@ large enough (will be set automatically)</li>
 <dt id="biobeam.Bpm3d.aberr_field_grid">
 <code class="descname">aberr_field_grid</code><span class="sig-paren">(</span><em>NA</em>, <em>cxs</em>, <em>cys</em>, <em>cz</em>, <em>n_zern=20</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.aberr_field_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>cxs, cys are equally spaced 1d arrays defining the grid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biobeam.Bpm3d.propagate">
+<code class="descname">propagate</code><span class="sig-paren">(</span><em>u0=None</em>, <em>offset=0</em>, <em>return_comp='field'</em>, <em>return_shape='full'</em>, <em>free_prop=False</em>, <em>dn_mean_method='none'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.Bpm3d.propagate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs:</dt>
+<dd>return_comp in [&#8220;field&#8221;, &#8220;intens&#8221;]
+return_shape in [&#8220;last&#8221;, &#8220;full&#8221;]
+free_prop = False | True
+dn_mean_method = &#8220;none&#8221;, &#8220;global&#8221;, &#8220;local&#8221;</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -109,7 +136,7 @@ large enough (will be set automatically)</li>
 
 
 
-<p class="blurb">GPU accelerated beam propagation</p>
+<p class="blurb">In silico tissue optics</p>
 
 
 
@@ -132,7 +159,7 @@ large enough (will be set automatically)</li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">2. Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">3. Basic Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#beam-propagation">3.1. Beam propagation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpu-accelerated-beam-propagation">3.1. GPU accelerated beam propagation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beams.html">4. Input Beam patterns</a></li>
@@ -140,7 +167,6 @@ large enough (will be set automatically)</li>
 <li class="toctree-l1"><a class="reference internal" href="forward_model.html">6. Simulating light sheet microscopy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="aberrations.html">7. Aberrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">8. Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html#some-examples">9. Some Examples</a></li>
 </ul>
 
 

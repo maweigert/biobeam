@@ -40,13 +40,40 @@
             
   <div class="section" id="installation">
 <h1>2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>To nicely render the 3d output it is advisible to install <em>Spimagine</em>, an OpenCL accelerated renderer <a class="reference external" href="https://github.com/maweigert/spimagine">Spimagine</a></p>
+<div class="section" id="requirements">
+<h2>2.1. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Python 2.+</li>
+<li>a working OpenCL environment</li>
+</ul>
+<p><em>Mac</em></p>
+<p>OpenCL should be provided by default :)</p>
+<p><em>Linux</em></p>
+<p>e.g. for nvidia cards, install the latest drivers and then the opencl lib/headers</p>
+<dl class="docutils">
+<dt>::</dt>
+<dd>sudo apt-get install opencl-header  nvidia-libopencl1-35 nvidia-opencl-icd-352
+sudo modprobe nvidia-352-uvm</dd>
+</dl>
+<p>until clinfo shows your GPU as a valid OpenCL device:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>sudo apt-get install clinfo
+sudo clinfo
+</pre></div>
+</div>
+<p><em>Windows</em></p>
+<p>Install your the SDK of your GPU vendor.</p>
+</div>
+<div class="section" id="installing-biobeam">
+<h2>2.2. Installing <em>biobeam</em><a class="headerlink" href="#installing-biobeam" title="Permalink to this headline">¶</a></h2>
+<p>A simple</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>pip install biobeam
+</pre></div>
+</div>
+<p>should be enough to get you the package.</p>
+<p>To nicely render the 3d output one can t install the OpenCL accelerated renderer <a class="reference external" href="https://github.com/maweigert/spimagine">Spimagine</a></p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>pip install spimagine
 </pre></div>
 </div>
-<p>After that you should be able to simple do</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>pip install biobeams
-</pre></div>
 </div>
 </div>
 
@@ -65,7 +92,7 @@
 
 
 
-<p class="blurb">GPU accelerated beam propagation</p>
+<p class="blurb">In silico tissue optics</p>
 
 
 
@@ -86,14 +113,17 @@
 </p><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2. Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-biobeam">2.2. Installing <em>biobeam</em></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="basic.html">3. Basic Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beams.html">4. Input Beam patterns</a></li>
 <li class="toctree-l1"><a class="reference internal" href="focus_field.html">5. Focus field calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forward_model.html">6. Simulating light sheet microscopy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="aberrations.html">7. Aberrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">8. Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html#some-examples">9. Some Examples</a></li>
 </ul>
 
 
