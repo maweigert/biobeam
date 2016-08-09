@@ -18,10 +18,10 @@ GPU accelerated beam propagation
    m = Bpm3d(dn = dn, units = (0.1,)*3, lam = 0.5)
 
    # propagate a plane wave and return the intensity
-   u = m._propagate()
+   u = m.propagate()
 
    # propagate a bessel beam 
-   u = m._propagate(u0 = m.u0_beam(NA = (.4,.42)))
+   u = m.propagate(u0 = m.u0_beam(NA = (.4,.42)))
 	
 
 

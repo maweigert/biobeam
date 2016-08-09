@@ -45,7 +45,8 @@ A simple
 should be enough to get you the package.
 
 
-To nicely render the 3d output one can t install the OpenCL accelerated renderer `Spimagine <https://github.com/maweigert/spimagine>`_
+
+To nicely render the 3d output just install the OpenCL accelerated renderer `Spimagine <https://github.com/maweigert/spimagine>`_ 
 
 ::
 

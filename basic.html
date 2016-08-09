@@ -51,10 +51,10 @@
 <span class="n">m</span> <span class="o">=</span> <span class="n">Bpm3d</span><span class="p">(</span><span class="n">dn</span> <span class="o">=</span> <span class="n">dn</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span> <span class="n">lam</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
 
 <span class="c1"># propagate a plane wave and return the intensity</span>
-<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">_propagate</span><span class="p">()</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">propagate</span><span class="p">()</span>
 
 <span class="c1"># propagate a bessel beam</span>
-<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">_propagate</span><span class="p">(</span><span class="n">u0</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">u0_beam</span><span class="p">(</span><span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">42</span><span class="p">)))</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">u0</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">u0_beam</span><span class="p">(</span><span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">42</span><span class="p">)))</span>
 </pre></div>
 </div>
 <dl class="class">
