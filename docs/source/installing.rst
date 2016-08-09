@@ -1,19 +1,53 @@
 Installation
 ============
 
+Requirements
+------------
 
-To nicely render the 3d output it is advisible to install *Spimagine*, an OpenCL accelerated renderer `Spimagine <https://github.com/maweigert/spimagine>`_
+* Python 2.+
+* a working OpenCL environment
+
+
+*Mac*
+
+OpenCL should be provided by default :)
+
+*Linux*
+
+e.g. for nvidia cards, install the latest drivers and then the opencl lib/headers
+
+::
+   sudo apt-get install opencl-header  nvidia-libopencl1-35 nvidia-opencl-icd-352
+   sudo modprobe nvidia-352-uvm
+
+
+until clinfo shows your GPU as a valid OpenCL device:
 
 ::
 
-   pip install spimagine
+   sudo apt-get install clinfo
+   sudo clinfo
+
+*Windows*
+
+Install your the SDK of your GPU vendor.
+
+Installing *biobeam*
+--------------------
 
 
-After that you should be able to simple do
-
+A simple 
 
 ::
 
    pip install biobeam
-   
 
+should be enough to get you the package.
+
+
+
+To nicely render the 3d output just install the OpenCL accelerated renderer `Spimagine <https://github.com/maweigert/spimagine>`_ 
+
+::
+
+   pip install spimagine

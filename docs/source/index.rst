@@ -1,16 +1,23 @@
-.. biobeam documentation master file, created by
-   sphinx-quickstart on Wed Jun 29 19:00:27 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+biobeam - Fast simulation of image formation in tissue microscopy 
+==================================================================
+.. 
+    .. image:: _static/droso_rotate.gif
 
+	   
+.. image:: _static/prop_composite_cycle.gif
+    :width: 600px
+    :align: center
 
-..
-   biobeam- GPU accelerated simulation of light interacting with tissue
-biobeam - a wave optical renderer to mimick image-formation in tissue microscopy
-======================================================================================================
+*biobeam* is an open software platform to rigorously simulate the image-formation process of fluorescent light microscopes, especially deep inside scattering biological tissues.
 
+It is designed to provide a fast and easy to use API for computational micoscopy and includes modules for
 
-.. image:: _static/droso_sim.png
+- scalar and vectorial PSF calculations
+
+- fast GPU-acclerated beam propagation of arbitrary light fields through a given refractive index map
+
+- the creation of simulated g3d image datasets from ground truth while taking for the whole image formation process of light-sheet microscopy into account.
+All modules use GPU-acceleration via OpenCL, making all these calculations exceedingly fast. 
 
 
 
