@@ -1,5 +1,5 @@
-biobeam - Fast simulation of image formation in tissue microscopy 
-==================================================================
+biobeam - Fast simulation of image formation for in-silico tissue microscopy
+============================================================================
 .. 
     .. image:: _static/droso_rotate.gif
 
