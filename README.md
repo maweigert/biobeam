@@ -1,4 +1,4 @@
-#biobeam - GPU accelerated simulation of light interacting with tissue
+#biobeam - Fast simulation of image formation for in-silico tissue microscopy
 
 <img src="https://github.com/maweigert/biobeam/raw/master/artwork/logo_biobeam_red.png" width="200">
 
