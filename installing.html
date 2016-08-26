@@ -50,11 +50,10 @@
 <p>OpenCL should be provided by default :)</p>
 <p><em>Linux</em></p>
 <p>e.g. for nvidia cards, install the latest drivers and then the opencl lib/headers</p>
-<dl class="docutils">
-<dt>::</dt>
-<dd>sudo apt-get install opencl-header  nvidia-libopencl1-35 nvidia-opencl-icd-352
-sudo modprobe nvidia-352-uvm</dd>
-</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span>sudo apt-get install opencl-header  nvidia-libopencl1-35 nvidia-opencl-icd-352
+sudo modprobe nvidia-352-uvm
+</pre></div>
+</div>
 <p>until clinfo shows your GPU as a valid OpenCL device:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>sudo apt-get install clinfo
 sudo clinfo

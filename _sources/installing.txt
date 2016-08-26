@@ -17,6 +17,7 @@ OpenCL should be provided by default :)
 e.g. for nvidia cards, install the latest drivers and then the opencl lib/headers
 
 ::
+
    sudo apt-get install opencl-header  nvidia-libopencl1-35 nvidia-opencl-icd-352
    sudo modprobe nvidia-352-uvm
 
