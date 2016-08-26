@@ -16,17 +16,18 @@ import numpy as np
 import sys
 from PyQt4 import QtCore
 from PyQt4 import QtGui
+
+
 from spimagine.gui.mainwidget import MainWidget
 from spimagine import NumpyData, DataModel, read3dTiff
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
 from biobeam.beam_gui.fieldlistpanel import FieldListPanel
-import logging
-
-logger = logging.getLogger(__name__)
-
-logger.setLevel(logging.DEBUG)
 
 from prop_panel import PropPanel
+
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class BeamGui(QtGui.QWidget):

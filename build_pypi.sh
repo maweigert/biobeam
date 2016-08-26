@@ -1,4 +1,5 @@
 rm dist/* build/*
+
 python setup.py sdist bdist_wheel
 
 #python setup.py register -r pypitest
