@@ -29,7 +29,10 @@ class CylindricalState(FieldState):
                                                )
 
     def _get_input_field(self, m):
-        return m.u0_cylindrical(center=(0, 0), zfoc=None, NA=self.kwargs["NA"])
+        NA = self.kwargs["NA"]
+        y = self.kwargs["y"]
+        z = self.kwargs["z"]+.5*m.size[-1]
+        return m.u0_cylindrical(center=(0, y), zfoc=z, NA=NA)
 
 
 class BeamState(FieldState):
@@ -42,17 +45,31 @@ class BeamState(FieldState):
                                         )
 
     def _get_input_field(self, m):
-        return m.u0_beam(center=(0, 0), zfoc=None, NA=self.kwargs["NA"])
+        NA = self.kwargs["NA"]
+        y = self.kwargs["y"]
+        z = self.kwargs["z"]+.5*m.size[-1]
+
+        return m.u0_beam(center=(0, y), zfoc=z, NA=NA)
 
 
 class LatticeState(FieldState):
-    def __init__(self, NA=.2):
+    def __init__(self, NA1=.3, NA2=.4, kpoints=6, sigma=0.1):
         super(LatticeState, self).__init__(name="bessel lattice",
                                            description="bessel lattice beam ",
-                                           kwargs={"NA": NA,
+                                           kwargs={"NA1": NA1,
+                                                   "NA2": NA2,
+                                                   "sigma": sigma,
+                                                   "kpoints": kpoints,
                                                    "y": 0,
                                                    "z": 0}
                                            )
 
     def _get_input_field(self, m):
-        return m.u0_lattice(center=(0, 0), zfoc=None, NA=self.kwargs["NA"])
+        NA1 = self.kwargs["NA1"]
+        NA2 = self.kwargs["NA2"]
+        kpoints = self.kwargs["kpoints"]
+        sigma = self.kwargs["sigma"]
+        y = self.kwargs["y"]
+        z = self.kwargs["z"]+.5*m.size[-1]
+
+        return m.u0_lattice(center=(0, y), zfoc=z, NA1=NA1, NA2=NA2, sigma=sigma, kpoints=kpoints)

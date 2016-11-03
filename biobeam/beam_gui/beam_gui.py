@@ -16,16 +16,13 @@ import numpy as np
 import sys
 from PyQt4 import QtCore
 from PyQt4 import QtGui
-
-
 from spimagine.gui.mainwidget import MainWidget
 from spimagine import NumpyData, DataModel, read3dTiff
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
 from biobeam.beam_gui.fieldlistpanel import FieldListPanel
-
 from prop_panel import PropPanel
-
 import logging
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -46,14 +43,18 @@ class BeamGui(QtGui.QWidget):
         self.prop_panel._propChanged.connect(self.on_prop_changed)
 
         self.field_list_panel = FieldListPanel()
+        self.field_list_panel._stateChanged.connect(self.propagate)
 
-        self.free_prop = False
+        self.free_prop = True
+
+        vbox = QtGui.QVBoxLayout()
+
+        vbox.addWidget(self.prop_panel)
+        vbox.addWidget(self.field_list_panel)
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.canvas, stretch=3)
-
-        # hbox.addWidget(self.prop_panel)
-        hbox.addWidget(self.field_list_panel)
+        hbox.addLayout(vbox)
 
         self.setLayout(hbox)
 
@@ -68,7 +69,7 @@ class BeamGui(QtGui.QWidget):
                            "beam_type": "cylindrical",
                            "ypos": 0}
 
-        self.prop_panel.edit.setText(str(self.properties))
+        #self.prop_panel.edit.setText(str(self.properties))
 
         self.reset_dn(dn, size, simul_xy=simul_xy, simul_z=simul_z)
 
@@ -76,15 +77,16 @@ class BeamGui(QtGui.QWidget):
 
     def check_dn(self):
         if self.prop_panel.check_dn.checkState():
-            self.free_prop = True
-        else:
             self.free_prop = False
+        else:
+            self.free_prop = True
         self.propagate()
 
     def view_dn(self):
         if self.prop_panel.disp_dn.checkState():
             self.canvas.glWidget.renderer.dataImg = self.bpm._im_dn
             self.canvas.glWidget.refresh()
+
         else:
             self.canvas.glWidget.renderer.dataImg = self.bpm.result_im
             self.canvas.glWidget.refresh()
@@ -98,8 +100,8 @@ class BeamGui(QtGui.QWidget):
 
         # simul_z = 2
         # simul_xy = (1024,)*2
-        simul_z = 2
-        simul_xy = (512,)*2
+        # simul_z = 2
+        # simul_xy = (512,)*2
 
         self.bpm = Bpm3d_img(size=size, dn=dn,
                              lam=.5,
@@ -190,15 +192,19 @@ class BeamGui(QtGui.QWidget):
         # self.canvas.mouseDoubleClickEvent(event)
 
 
-def sphere_dn():
-    x = np.linspace(-1, 1, 256)
+def sphere_dn(N=128):
+    import gputools
+
+    x = np.linspace(-1, 1, N)
     Z, Y, X = np.meshgrid(x, x, x)
     R = np.sqrt(Z**2+Y**2+X**2)
 
-    dn = .1*(R<.4)*(1-7.j)
+    noise = gputools.perlin3((N,)*3,scale = 5)
 
-    dn = 0*dn-.4j
-    return dn
+    dn = .1*noise*(R<.4)*(1-7.j)
+
+    #dn = 0*dn-.4j
+    return dn.astype(np.float32)
 
 
 if __name__=='__main__':

@@ -394,9 +394,12 @@ class Bpm3d(object):
         return np.roll(np.roll(u0, cy, 0), cx, 1)
 
     def u0_lattice(self, center=(0, 0), zfoc=None,
-                   NA1=.3, NA2=.4,
+                   NA1=.4, NA2=.5,
+                   sigma=.1,
+                   kpoints=6,
                    n_integration_steps=300,
-                   sigma=.1):
+                   ):
+        """see help for biobeam.focus_field_lattice_plane"""
 
         if zfoc is None:
             zfoc = .5*self.size[-1]
@@ -405,6 +408,7 @@ class Bpm3d(object):
                                        units=(self.dx, self.dy),
                                        z=zfoc, NA1=NA1, NA2=NA2,
                                        sigma=sigma,
+                                       kpoints = kpoints,
                                        lam=self.lam, n0=self.n0,
                                        n_integration_steps=n_integration_steps)
         cx, cy = center

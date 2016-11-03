@@ -2,7 +2,6 @@ import sys
 import numpy as np
 from PyQt4 import QtCore, QtGui, Qt
 import biobeam
-from biobeam.beam_gui.fieldstate import CylindricalState
 import logging
 
 logger = logging.getLogger(__name__)
@@ -129,9 +128,10 @@ class FieldPanel(QtGui.QWidget):
 
 
 if __name__=='__main__':
+    from biobeam.beam_gui.fieldstate import CylindricalState, LatticeState
     app = QtGui.QApplication(sys.argv)
 
-    c = CylindricalState()
+    c = LatticeState()
 
     win = FieldPanel(c)
     win.show()

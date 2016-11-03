@@ -33,25 +33,22 @@ class PropPanel(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
-        vbox = QtGui.QVBoxLayout()
-
-        lab = QtGui.QLabel("properties")
 
         self.check_dn = createStandardCheckbox(self)
 
         self.disp_dn = createStandardCheckbox(self)
 
-        self.edit = MyEdit("1")
+        gridBox = QtGui.QGridLayout()
+        gridBox.addWidget(self.check_dn, 0, 0)
+        gridBox.addWidget(QtGui.QLabel("use dn"), 0, 1)
 
-        self.edit.returnPressed.connect(lambda: self._propChanged.emit(self.edit.toPlainText()))
 
-        vbox.addWidget(lab)
-        vbox.addWidget(self.check_dn)
-        vbox.addWidget(self.disp_dn)
+        gridBox.addWidget(self.disp_dn, 1, 0)
+        gridBox.addWidget(QtGui.QLabel("show dn"), 1, 1)
 
-        vbox.addWidget(self.edit)
-        vbox.addStretch()
-        self.setLayout(vbox)
+
+
+        self.setLayout(gridBox)
 
         self.setStyleSheet("""
         QFrame,QLabel,QLineEdit, QTextEdit {

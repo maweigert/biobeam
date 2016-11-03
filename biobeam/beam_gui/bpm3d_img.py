@@ -75,7 +75,7 @@ class Bpm3d_img(Bpm3d):
                 self._mult_complex(self._buf_plane, self._buf_H)
                 fft(self._buf_plane, inplace=True, inverse=True, plan=self._plan)
                 if not free_prop:
-                    self._mult_dn(self._buf_plane, (i+(j+1.)/self.simul_z))
+                    self._mult_dn(self._buf_plane, (i+(j+1.)/self.simul_z),self.n0)
 
             self._img_xy.copy_buffer(self._buf_plane)
             self._copy_down_img_to_img(self._img_xy, im, i+1)
