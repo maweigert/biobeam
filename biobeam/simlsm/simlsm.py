@@ -140,7 +140,7 @@ class SimLSM_Base(object):
 
         offset_z = int(np.round(c[0]/self._bpm_detect.units[-1]))
 
-        print offset_z
+
         u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
                                         return_shape="last",**bpm_kwargs)
 
@@ -196,14 +196,16 @@ class SimLSM_Base(object):
 
             self._last_grid_u0 = self._GridSaveObject(grid_dim,u0)
 
+
         u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
                                         return_shape="last",
                                         return_comp="field",
                                         **bpm_kwargs)
 
+        bpm_kwargs.update({"free_prop":True})
+
         #refocus
         u = self._bpm_detect.propagate(u0 = u0.conjugate(),
-                                       free_prop=True,
                                        #offset=Nz/2+c[0],
                                        return_shape="full",
                                        return_comp="intens",
@@ -230,6 +232,7 @@ class SimLSM_Base(object):
                          conv_pad_factor = 2,
                          conv_mode = "wrap",
                          mode = "product",
+                         with_sheet = True,
                          **bpm_kwargs):
         """
         mode = ["product","illum"]
@@ -246,7 +249,7 @@ class SimLSM_Base(object):
 
         # illumination
 
-        print "illuminating at z= %s mu with psf mode %s"%(cz,mode)
+
 
         psfs = self.psf_grid_z(cz = cz,
                                grid_dim=psf_grid_dim,
@@ -261,22 +264,22 @@ class SimLSM_Base(object):
 
         signal = 1.*signal[s].copy()
 
-        u = self.propagate_illum(cz = cz,**bpm_kwargs)
+        if with_sheet:
+            print "illuminating at z= %s mu with psf mode %s" % (cz, mode)
+            u = self.propagate_illum(cz = cz,**bpm_kwargs)
 
+            if mode =="psf_product":
+                psfs = psfs*u[s]
+            else:
+                signal = signal*u[s]
 
-        #return u[s], psfs, signal
-        if mode =="psf_product":
-            psfs = psfs*u[s]
-        else:
-            signal = signal*u[s]
-
-        print "convolving: %s %s"%(signal.shape,psfs.shape)
+        print "spatially varying convolution: %s %s"%(signal.shape,psfs.shape)
         #convolve
         conv = convolve_spatial3(signal.copy(), psfs.copy(),
                                  grid_dim = (1,)+psf_grid_dim,
                                  sub_blocks=(1,)+conv_sub_blocks,
                                  pad_factor=conv_pad_factor,
-                                 mode = conv_mode)
+                                 mode = conv_mode, verbose = True)
 
         #return u, self.signal[s].copy(), signal, psfs, conv
 

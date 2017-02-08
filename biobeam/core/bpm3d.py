@@ -488,7 +488,7 @@ class Bpm3d(object):
                             self._copy_down_buf(self._buf_plane, tmp, 0)
 
                         dn0 = np.sum(np.abs(self.dn[i])*tmp.get())/np.sum(np.abs(self.dn[i])+1.e-10)
-                        print dn0
+
                         self._fill_propagator(self.n0+dn0)
                 else:
                     if self.dn_mean[i+offset]!=dn0:
