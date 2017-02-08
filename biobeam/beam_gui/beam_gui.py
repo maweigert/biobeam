@@ -89,6 +89,7 @@ class BeamGui(QtGui.QWidget):
 
         else:
             self.canvas.glWidget.renderer.dataImg = self.bpm.result_im
+
             self.canvas.glWidget.refresh()
 
     def reset_dn(self, dn, size, simul_z=None, simul_xy=None):
@@ -169,6 +170,7 @@ class BeamGui(QtGui.QWidget):
 
 
     def propagate(self):
+        print "propagate!"
         im = self.canvas.glWidget.renderer.dataImg
 
         field = self.field_list_panel.fields[self.field_list_panel.combo.currentIndex()]
@@ -192,32 +194,31 @@ class BeamGui(QtGui.QWidget):
         # self.canvas.mouseDoubleClickEvent(event)
 
 
-def sphere_dn(N=128):
-    import gputools
 
+def sphere_dn(N = 128):
+    import gputools
+    print "creating sphere with N = ", N
     x = np.linspace(-1, 1, N)
     Z, Y, X = np.meshgrid(x, x, x)
     R = np.sqrt(Z**2+Y**2+X**2)
 
-    noise = gputools.perlin3((N,)*3,scale = 5)
-
+    noise = gputools.perlin3((N,)*3,scale= 10)
     dn = .1*noise*(R<.4)*(1-7.j)
 
-    #dn = 0*dn-.4j
-    return dn.astype(np.float32)
+
+    return dn
 
 
 if __name__=='__main__':
     import sys
 
     if len(sys.argv)>1:
-        if sys.argv[1]!="0":
-            dn = read3dTiff(sys.argv[1])
+        if sys.argv[1].isdigit():
+            dn = sphere_dn(int(sys.argv[1]))
         else:
-            dn = np.zeros((256, 256, 256), np.float32)
-            dn[0, 0, 0] = .01
+            dn = read3dTiff(sys.argv[1])
     else:
-        dn = sphere_dn()
+        dn = sphere_dn(128)
 
     app = QtGui.QApplication(sys.argv)
 
@@ -231,4 +232,5 @@ if __name__=='__main__':
 
     win.propagate()
 
-    sys.exit(app.exec_())
+    #sys.exit(app.exec_())
+    #sys.exit(app.exec_())
