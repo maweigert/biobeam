@@ -1,4 +1,4 @@
-from bpm3d import Bpm3d
+from .bpm3d import Bpm3d
 
 
 from focus_field_cylindrical import focus_field_cylindrical, focus_field_cylindrical_plane
