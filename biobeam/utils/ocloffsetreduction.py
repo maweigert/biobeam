@@ -9,7 +9,9 @@ mweigert@mpi-cbg.de
 
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import print_function
 from six.moves import zip
+from six.moves import range
 
 __copyright__ = "Copyright (C) 2010 Andreas Kloeckner"
 
@@ -482,7 +484,7 @@ class OCLMultiReductionKernel:
                                  (), self.dtype_out,
                                  allocator=repr_vec.allocator) for out in outs]
 
-            print seq_count, sz
+            print(seq_count, sz)
 
             last_evt = stage_inf.kernel(
                 use_queue,
@@ -509,25 +511,25 @@ if __name__=='__main__':
 
 
     def time_multi(N, nargs, niter =100):
-        map_exprs=["%s*x%s[i]"%(i,i) for i in xrange(nargs)]
-        arguments = ",".join("__global float *x%s"%i for i in xrange(nargs))
+        map_exprs=["%s*x%s[i]"%(i,i) for i in range(nargs)]
+        arguments = ",".join("__global float *x%s"%i for i in range(nargs))
 
         k = OCLMultiReductionKernel(np.float32,
                                     neutral="0", reduce_expr="a+b",
                                     map_exprs=map_exprs,
                                     arguments=arguments)
 
-        ins = [OCLArray.from_array(np.ones(N,np.float32)) for _ in xrange(len(map_exprs))]
-        outs = [OCLArray.empty(1,np.float32) for _ in xrange(len(map_exprs))]
+        ins = [OCLArray.from_array(np.ones(N,np.float32)) for _ in range(len(map_exprs))]
+        outs = [OCLArray.empty(1,np.float32) for _ in range(len(map_exprs))]
 
         from time import time
         t = time()
-        for _ in xrange(niter):
+        for _ in range(niter):
             k(*ins, outs = outs)
         get_device().queue.finish()
         t = (time()-t)/niter
-        print "multi reduction: result =", [float(out.get()) for out in outs]
-        print "multi reduction:\t\t%.2f ms"%(1000*t)
+        print("multi reduction: result =", [float(out.get()) for out in outs])
+        print("multi reduction:\t\t%.2f ms"%(1000*t))
         return t
 
 
@@ -535,26 +537,26 @@ if __name__=='__main__':
     def time_simple(N, nargs, niter =100):
         from gputools import OCLReductionKernel
 
-        map_exprs=["%s*x[i]"%i for i in xrange(nargs)]
+        map_exprs=["%s*x[i]"%i for i in range(nargs)]
 
 
         ks = [OCLReductionKernel(np.float32,
                             neutral="0", reduce_expr="a+b",
                             map_expr="%s*x[i]"%i,
-                            arguments="__global float *x") for i in xrange(len(map_exprs))]
+                            arguments="__global float *x") for i in range(len(map_exprs))]
 
-        ins = [OCLArray.from_array(np.ones(N,np.float32)) for _ in xrange(len(map_exprs))]
-        outs = [OCLArray.empty(1,np.float32) for _ in xrange(len(map_exprs))]
+        ins = [OCLArray.from_array(np.ones(N,np.float32)) for _ in range(len(map_exprs))]
+        outs = [OCLArray.empty(1,np.float32) for _ in range(len(map_exprs))]
 
         from time import time
         t = time()
-        for _ in xrange(niter):
+        for _ in range(niter):
             for k,inn,out in zip(ks,ins,outs):
                 k(inn, out = out)
         get_device().queue.finish()
         t = (time()-t)/niter
-        print "simple reduction: result =", [float(out.get()) for out in outs]
-        print "simple reduction:\t\t%.2f ms"%(1000*t)
+        print("simple reduction: result =", [float(out.get()) for out in outs])
+        print("simple reduction:\t\t%.2f ms"%(1000*t))
         return t
 
 
@@ -575,7 +577,7 @@ if __name__=='__main__':
 
 
     # print k1(a)
-    print k2(a)
+    print(k2(a))
 
 
     #

@@ -1,8 +1,12 @@
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
 import numpy  as np
+import six
+from six.moves import range
                 
 class StopWatch(object):
     """ stops time in miliseconds
@@ -34,7 +38,7 @@ class StopWatch(object):
 
 
     def __repr__(self):
-        return "\n".join(["%s:\t%.3f ms"%(str(k),v) for k,v in self.times.iteritems()])
+        return "\n".join(["%s:\t%.3f ms"%(str(k),v) for k,v in six.iteritems(self.times)])
 
 def absPath(myPath):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -52,10 +56,10 @@ def pad_to_shape(h,dshape, mode = "constant"):
 
     diff = np.array(dshape)- np.array(h.shape)
     #first shrink
-    slices  = [slice(-x/2,x/2) if x<0 else slice(None,None) for x in diff]
+    slices  = [slice(-x//2,x//2) if x<0 else slice(None,None) for x in diff]
     res = h[slices]
     #then padd
-    return np.pad(res,[(d/2,d-d/2) if d>0 else (0,0) for d in diff],mode=mode)
+    return np.pad(res,[(d//2,d-d//2) if d>0 else (0,0) for d in diff],mode=mode)
 
 def _is_power2(n):
     return _next_power_of_2(n) == n
@@ -69,7 +73,7 @@ def pad_to_power2(data, axis = None,mode="constant"):
     the ones given e.g axis=[0,2]
     """
     if axis is None:
-        axis = range(data.ndim)
+        axis = list(range(data.ndim))
     if np.all([_is_power2(n) for n in np.array(data.shape)[axis]]):
         return data
     else:
@@ -80,10 +84,10 @@ if __name__ == '__main__':
 
 
 
-    print "absPath: ", absPath(".") 
+    print("absPath: ", absPath(".")) 
 
     d = np.ones((1,7,12))
 
     d2 = pad_to_power2(d,axis=[0,1])
 
-    print d2.shape
+    print(d2.shape)

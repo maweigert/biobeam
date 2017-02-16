@@ -1,10 +1,14 @@
 """the main method for beam propagation in media with coated spheres"""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import numpy.testing as npt
 
 
 from biobeam import Bpm3d
+from six.moves import range
+from six.moves import zip
 
 def cmp_plane(shape = (256,)*3, n_x_comp = 0, n0 = 1., n = None):
     """ propagates a plane wave freely
@@ -47,7 +51,7 @@ def cmp_plane(shape = (256,)*3, n_x_comp = 0, n0 = 1., n = None):
     u = m._propagate_single(u0 = u_plane[0])
 
     l2_diff  = np.mean(np.abs(u_plane-u)**2)
-    print "shape =%s x_comp: %s n0=%.2f \t\tL2 difference = %.4f"%(shape,n_x_comp, n0, l2_diff)
+    print("shape =%s x_comp: %s n0=%.2f \t\tL2 difference = %.4f"%(shape,n_x_comp, n0, l2_diff))
 
     npt.assert_almost_equal(np.mean(np.abs(u_plane-u)**2),0,decimal = 2)
 
@@ -122,7 +126,7 @@ def test_some():
 
 
     for x_comp,n0,shape in product(x_comps, n0s, shapes):
-        print x_comp, n0, shape
+        print(x_comp, n0, shape)
         cmp_plane(shape,n_x_comp=x_comp, n0 = n0)
         # u_bpm.append(u1)
         # u_plane.append(u2)

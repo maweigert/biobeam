@@ -6,6 +6,8 @@ Purnapatra, Subhajit B. Mondal, Partha P.
 Determination of electric field at and near the focus of a cylindrical lens for applications in fluorescence microscopy (2013)
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -126,12 +128,12 @@ def focus_field_lattice(shape=(128, 128, 128),
                  ez_g.data,
                  u_g.data,
                  np.float32(1.), np.float32(0.),
-                 # np.float32(-dx*(Nx-1)/2.),np.float32(dx*(Nx-1)/2.),
-                 # np.float32(-dy*(Ny-1)/2.),np.float32(dy*(Ny-1)/2.),
-                 # np.float32(-dz*(Nz-1)/2.),np.float32(dz*(Nz-1)/2.),
-                 np.float32(dx*(-Nx/2)), np.float32(dx*(Nx/2-1)),
-                 np.float32(dy*(-Ny/2)), np.float32(dy*(Ny/2-1)),
-                 np.float32(dz*(-Nz/2)), np.float32(dz*(Nz/2-1)),
+                 # np.float32(-dx*(Nx-1)//2.),np.float32(dx*(Nx-1)//2.),
+                 # np.float32(-dy*(Ny-1)//2.),np.float32(dy*(Ny-1)//2.),
+                 # np.float32(-dz*(Nz-1)//2.),np.float32(dz*(Nz-1)//2.),
+                 np.float32(dx*(-Nx//2)), np.float32(dx*(Nx//2-1)),
+                 np.float32(dy*(-Ny//2)), np.float32(dy*(Ny//2-1)),
+                 np.float32(dz*(-Nz//2)), np.float32(dz*(Nz//2-1)),
                  np.float32(1.*lam/n0),
                  np.float32(alpha1),
                  np.float32(alpha2),
@@ -187,7 +189,7 @@ def focus_field_lattice2(shape=(128, 128, 128),
     dx, dy, dz = units
 
     # the psf is symmetric in z, we just have to calculate one half plane
-    Nz = Nz0/2+1
+    Nz = Nz0//2+1
 
     u_g = OCLArray.empty((Nz, Ny, Nx), np.float32)
     ex_g = OCLArray.empty((Nz, Ny, Nx), np.complex64)
@@ -205,8 +207,8 @@ def focus_field_lattice2(shape=(128, 128, 128),
                  ez_g.data,
                  u_g.data,
                  np.float32(1.), np.float32(0.),
-                 np.float32(dx*(-Nx/2)), np.float32(dx*(Nx/2-1)),
-                 np.float32(dy*(-Ny/2)), np.float32(dy*(Ny/2-1)),
+                 np.float32(dx*(-Nx//2)), np.float32(dx*(Nx//2-1)),
+                 np.float32(dy*(-Ny//2)), np.float32(dy*(Ny//2-1)),
                  np.float32(0.), np.float32(dz*(Nz-1.)),
                  np.float32(1.*lam/n0),
                  np.float32(alpha1),
@@ -242,7 +244,7 @@ def focus_field_lattice2(shape=(128, 128, 128),
             ey_all[sz[1-i]] = np.conjugate(ey[1-i:Nz-1+i][::(-1)**i])
             ez_all[sz[1-i]] = np.conjugate(ez[1-i:Nz-1+i][::(-1)**i])
 
-    print "time in secs:", time.time()-t
+    print("time in secs:", time.time()-t)
 
     return u_all, ex_all, ey_all, ez_all
 
@@ -341,8 +343,8 @@ def focus_field_lattice_plane(shape=(256, 256),
                  None,
                  ex_g.data,
                  np.float32(1.), np.float32(0.),
-                 np.float32(-dx*(Nx-1)/2.), np.float32(dx*(Nx-1)/2.),
-                 np.float32(-dy*(Ny-1)/2.), np.float32(dy*(Ny-1)/2.),
+                 np.float32(-dx*(Nx-1)//2.), np.float32(dx*(Nx-1)//2.),
+                 np.float32(-dy*(Ny-1)//2.), np.float32(dy*(Ny-1)//2.),
                  np.float32(-z),
                  np.float32(1.*lam/n0),
                  np.float32(alpha1),
@@ -356,7 +358,7 @@ def focus_field_lattice_plane(shape=(256, 256),
 
     if not use_buffer:
         res = ex_g.get()
-        print "time in secs:", time.time()-t
+        print("time in secs:", time.time()-t)
         return res
 
 

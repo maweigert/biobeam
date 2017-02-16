@@ -5,6 +5,8 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from biobeam import Bpm3d
 from time import time
@@ -27,8 +29,8 @@ def time_single(dshape, sub_fac = 1, free_prop = True, fast_math = True):
     t = time()-t
 
     geom = simul_xy + (dshape[0]*sub_fac,)
-    print "geometry %s / %s\n    free_prop = %s\tfast_math = %s\t\n    time = %.2f ms"\
-          %(dshape[::-1],geom, free_prop, fast_math,1000.*t)
+    print("geometry %s / %s\n    free_prop = %s\tfast_math = %s\t\n    time = %.2f ms"\
+          %(dshape[::-1],geom, free_prop, fast_math,1000.*t))
 
 
 

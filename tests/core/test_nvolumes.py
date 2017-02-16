@@ -1,12 +1,15 @@
 """the main method for beam propagation in media with coated spheres"""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import numpy.testing as npt
 from time import time
 from biobeam import Bpm3d
+from six.moves import range
 
 
-def test_speed(vols = range(1,6)):
+def test_speed(vols = list(range(1,6))):
 
 
     Nx = 256
@@ -25,7 +28,7 @@ def test_speed(vols = range(1,6)):
         t = time()
         u = m.propagate()
         t = time()-t
-        print "n_volume = %s \t diff = %.4f \t time = %.4fs"%(nvols, np.mean(np.abs(u0-u)),t)
+        print("n_volume = %s \t diff = %.4f \t time = %.4fs"%(nvols, np.mean(np.abs(u0-u)),t))
 
 def test_prop():
     Nx = 256

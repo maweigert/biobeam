@@ -11,6 +11,8 @@ mweigert@mpi-cbg.de
 
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import numpy as np
 import sys
@@ -20,8 +22,9 @@ from spimagine.gui.mainwidget import MainWidget
 from spimagine import NumpyData, DataModel, read3dTiff
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
 from biobeam.beam_gui.fieldlistpanel import FieldListPanel
-from prop_panel import PropPanel
+from .prop_panel import PropPanel
 import logging
+from six.moves import zip
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -121,8 +124,8 @@ class BeamGui(QtGui.QWidget):
         try:
             d = eval(str(s))
         except:
-            print "could not parse"
-            print s
+            print("could not parse")
+            print(s)
             self.prop_panel.edit.setText(str(self.properties))
             return
 
@@ -170,7 +173,7 @@ class BeamGui(QtGui.QWidget):
 
 
     def propagate(self):
-        print "propagate!"
+        print("propagate!")
         im = self.canvas.glWidget.renderer.dataImg
 
         field = self.field_list_panel.fields[self.field_list_panel.combo.currentIndex()]
@@ -197,7 +200,7 @@ class BeamGui(QtGui.QWidget):
 
 def sphere_dn(N = 128):
     import gputools
-    print "creating sphere with N = ", N
+    print("creating sphere with N = ", N)
     x = np.linspace(-1, 1, N)
     Z, Y, X = np.meshgrid(x, x, x)
     R = np.sqrt(Z**2+Y**2+X**2)

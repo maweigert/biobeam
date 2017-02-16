@@ -5,10 +5,14 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from biobeam import Bpm3d
 from gputools import convolve_spatial3
 from collections import namedtuple
+from six.moves import range
+from functools import reduce
 
 def _perm_inverse(perm):
     inverse = [0] * len(perm)
@@ -122,9 +126,9 @@ class SimLSM_Base(object):
         bpm_kwargs.update({"return_comp":"intens"})
         offset = int(cz/self._bpm_illum.dy)
 
-        assert abs(offset)<= self.u0_illum.shape[0]/2
+        assert abs(offset)<= self.u0_illum.shape[0]//2
 
-        print "offset: ",offset
+        print("offset: ",offset)
         u0 = np.roll(self.u0_illum, offset ,axis=0)
         u = self._bpm_illum.propagate(u0,**bpm_kwargs)
         return self._trans_illum(u, inv = True)
@@ -141,13 +145,13 @@ class SimLSM_Base(object):
         offset_z = int(np.round(c[0]/self._bpm_detect.units[-1]))
 
 
-        u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
+        u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz//2+offset_z,
                                         return_shape="last",**bpm_kwargs)
 
         #refocus
         u2 = self._bpm_detect.propagate(u0 = u1.conjugate(),
                                        free_prop=True,
-                                       #offset=Nz/2+c[0],
+                                       #offset=Nz//2+c[0],
                                        return_shape="full",return_comp="intens",
                                         **bpm_kwargs)[::-1]
 
@@ -159,7 +163,7 @@ class SimLSM_Base(object):
         if zslice is None:
             return u2
         else:
-            u2 = np.roll(u2,-offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
+            u2 = np.roll(u2,-offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice]
             return u2
 
 
@@ -170,7 +174,7 @@ class SimLSM_Base(object):
         """cz in microns relative to the center
         """
 
-        print "computing psf grid %s..."%(str(grid_dim))
+        print("computing psf grid %s..."%(str(grid_dim)))
 
 
         offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
@@ -181,12 +185,12 @@ class SimLSM_Base(object):
         Nb_x, Nb_y = self._bpm_detect.simul_xy[0]/n_x, self._bpm_detect.simul_xy[1]/n_y
 
         # get the offset positions
-        xs = np.round([-self._bpm_detect.simul_xy[0]/2+n*Nb_x+Nb_x/2 for n in xrange(n_x)]).astype(np.int)
-        ys = np.round([-self._bpm_detect.simul_xy[1]/2+n*Nb_y+Nb_y/2 for n in xrange(n_y)]).astype(np.int)
+        xs = np.round([-self._bpm_detect.simul_xy[0]//2+n*Nb_x+Nb_x//2 for n in range(n_x)]).astype(np.int)
+        ys = np.round([-self._bpm_detect.simul_xy[1]//2+n*Nb_y+Nb_y//2 for n in range(n_y)]).astype(np.int)
 
         # this is expensive, so memoize it if we use it several times after
         if self._last_grid_u0.grid_dim == grid_dim:
-            print "using saved grid"
+            print("using saved grid")
             u0 = self._last_grid_u0.u0
         else:
             #u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
@@ -197,7 +201,7 @@ class SimLSM_Base(object):
             self._last_grid_u0 = self._GridSaveObject(grid_dim,u0)
 
 
-        u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz/2+offset_z,
+        u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz//2+offset_z,
                                         return_shape="last",
                                         return_comp="field",
                                         **bpm_kwargs)
@@ -206,7 +210,7 @@ class SimLSM_Base(object):
 
         #refocus
         u = self._bpm_detect.propagate(u0 = u0.conjugate(),
-                                       #offset=Nz/2+c[0],
+                                       #offset=Nz//2+c[0],
                                        return_shape="full",
                                        return_comp="intens",
                                        **bpm_kwargs)[::-1]
@@ -219,8 +223,8 @@ class SimLSM_Base(object):
         if zslice is None:
             return u
         else:
-            u = np.roll(u,-offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice]
-            #u = np.roll(u,offset_z,axis=0)[self.Nz/2-zslice:self.Nz/2+zslice][::-1]
+            u = np.roll(u,-offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice]
+            #u = np.roll(u,offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice][::-1]
             return u
 
 
@@ -258,14 +262,14 @@ class SimLSM_Base(object):
 
         offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
 
-        assert offset_z+zslice<self.Nz and self.Nz/2+offset_z-zslice>=0
+        assert offset_z+zslice<self.Nz and self.Nz//2+offset_z-zslice>=0
 
-        s = slice(self.Nz/2+offset_z-zslice,self.Nz/2+offset_z+zslice)
+        s = slice(self.Nz//2+offset_z-zslice,self.Nz//2+offset_z+zslice)
 
         signal = 1.*signal[s].copy()
 
         if with_sheet:
-            print "illuminating at z= %s mu with psf mode %s" % (cz, mode)
+            print("illuminating at z= %s mu with psf mode %s" % (cz, mode))
             u = self.propagate_illum(cz = cz,**bpm_kwargs)
 
             if mode =="psf_product":
@@ -273,7 +277,7 @@ class SimLSM_Base(object):
             else:
                 signal = signal*u[s]
 
-        print "spatially varying convolution: %s %s"%(signal.shape,psfs.shape)
+        print("spatially varying convolution: %s %s"%(signal.shape,psfs.shape))
         #convolve
         conv = convolve_spatial3(signal.copy(), psfs.copy(),
                                  grid_dim = (1,)+psf_grid_dim,

@@ -5,8 +5,11 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from biobeam import Bpm3d
+from six.moves import zip
 
 
 if __name__ == '__main__':
@@ -31,7 +34,7 @@ if __name__ == '__main__':
     us = [m.propagate(dn_mean_method=mode) for mode in modes]
 
     for mode,u in zip(modes,us):
-        print "diff (%s):\t%.3g"%(mode,np.mean(np.abs(u[:,N/2,N/2]-u0)))
+        print("diff (%s):\t%.3g"%(mode,np.mean(np.abs(u[:,N/2,N/2]-u0))))
 
 
 

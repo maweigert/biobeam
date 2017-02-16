@@ -1,8 +1,11 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import numpy as np
 from PyQt4 import QtCore, QtGui, Qt
 import biobeam
 import logging
+import six
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -69,7 +72,7 @@ class FieldPanel(QtGui.QWidget):
 
         gridBox.addWidget(QtGui.QLabel(self._description), 0, 0)
 
-        for i, (key, val) in enumerate(self._state.iteritems()):
+        for i, (key, val) in enumerate(six.iteritems(self._state)):
             dtype = type(val)
             if dtype==bool:
                 check = QtGui.QCheckBox("", self)
@@ -139,4 +142,4 @@ if __name__=='__main__':
 
     app.exec_()
 
-    print c.kwargs
+    print(c.kwargs)

@@ -9,6 +9,7 @@ mweigert@mpi-cbg.de
 
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import print_function
 from six.moves import zip
 
 __copyright__ = "Copyright (C) 2010 Andreas Kloeckner"
@@ -449,5 +450,5 @@ if __name__=='__main__':
     #res = OCLArray.empty(256,np.float32)
 
 
-    print k1(a)
-    print k2(a)
+    print(k1(a))
+    print(k2(a))

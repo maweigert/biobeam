@@ -4,6 +4,8 @@ mweigert@mpi-cbg.de
 
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from biobeam import Bpm3d
 
@@ -32,7 +34,7 @@ def test_shapes():
     m2 = Bpm3d(dn=dn2, units=(.1,)*3)
     u2 = m2.propagate(return_comp="intens")[:, p1:-p1, p2:-p2]
 
-    print "maximal absolute difference: ", np.amax(np.abs(u1-u2))
+    print("maximal absolute difference: ", np.amax(np.abs(u1-u2)))
     return u1, u2
 
 

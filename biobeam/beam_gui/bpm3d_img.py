@@ -5,10 +5,14 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
 import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device
 from gputools import fft, fft_plan
 from biobeam import Bpm3d
+from six.moves import range
+from six.moves import zip
+from functools import reduce
 
 
 def absPath(myPath):
@@ -68,8 +72,8 @@ class Bpm3d_img(Bpm3d):
         self._img_xy.copy_buffer(self._buf_plane)
         self._copy_down_img_to_img(self._img_xy, im, 0)
 
-        for i in xrange(Nz-1):
-            for j in xrange(self.simul_z):
+        for i in range(Nz-1):
+            for j in range(self.simul_z):
 
                 fft(self._buf_plane, inplace=True, plan=self._plan)
                 self._mult_complex(self._buf_plane, self._buf_H)

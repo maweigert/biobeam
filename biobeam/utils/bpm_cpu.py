@@ -5,6 +5,8 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import bpm
 from bpm.bpmclass.bpm3d import Bpm3d
 from numpy import *
@@ -12,6 +14,7 @@ import numpy as np
 import pylab
 import gputools
 from time import time
+from six.moves import range
 
 if __name__ == '__main__':
 
@@ -51,7 +54,7 @@ if __name__ == '__main__':
         #     break
         u[i+1] = _u
 
-    print "time: %.1f ms"%(1000*(time()-t))
+    print("time: %.1f ms"%(1000*(time()-t)))
 
     pylab.clf()
     pylab.plot(mean(abs(u)**2,(1,2)))

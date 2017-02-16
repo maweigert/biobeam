@@ -13,6 +13,8 @@ Journal of Modern Optics, 58(5-6)
 
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 from gputools import OCLArray, OCLImage, OCLProgram
 import itertools
 import numpy as np
@@ -105,9 +107,9 @@ def focus_field_beam(shape = (128,128,128),
     assert len(alphas)%2 ==0
 
     # as we assume the psf to be symmetric, we just have to calculate each octant
-    Nx = Nx0/2+1
-    Ny = Ny0/2+1
-    Nz = Nz0/2+1
+    Nx = Nx0//2+1
+    Ny = Ny0//2+1
+    Nz = Nz0//2+1
 
     u_g = OCLArray.empty((Nz,Ny,Nx),np.float32)
     ex_g = OCLArray.empty(u_g.shape,np.complex64)
@@ -247,13 +249,13 @@ def focus_field_beam_plane(shape = (128,128),
     p.run_kernel("debye_wolf_plane",(Nx,Ny),None,
                  ex_g.data,
                  np.float32(1.),np.float32(0.),
-                 np.float32(-(Nx/2)*dx),np.float32((Nx-1-Nx/2)*dx),
-                 np.float32(-(Ny/2)*dy),np.float32((Ny-1-Ny/2)*dy),
+                 np.float32(-(Nx//2)*dx),np.float32((Nx-1-Nx//2)*dx),
+                 np.float32(-(Ny//2)*dy),np.float32((Ny-1-Ny//2)*dy),
                  np.float32(-z),
                  np.float32(lam/n0),
                  alpha_g.data, np.int32(len(alphas)))
 
-    print "time in secs:" , time.time()-t
+    print("time in secs:" , time.time()-t)
 
     if not use_buffer:
         return ex_g.get()

@@ -4,8 +4,10 @@
 mweigert@mpi-cbg.de
 
 """
+from __future__ import absolute_import
 import numpy as np
 from biobeam.simlsm.simlsm import SimLSM_Base
+from six.moves import range
 
 
 class SimLSM_Cylindrical(SimLSM_Base):

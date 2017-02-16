@@ -5,6 +5,7 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
 from PyQt4 import QtGui, QtCore
 from biobeam.beam_gui.fieldpanel import FieldPanel
 from biobeam.beam_gui.fieldstate import CylindricalState, BeamState, LatticeState

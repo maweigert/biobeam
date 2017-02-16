@@ -5,6 +5,8 @@ mweigert@mpi-cbg.de
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from gputools import OCLArray, OCLImage, OCLProgram, get_device, OCLMultiReductionKernel
 from gputools import fft, fft_plan
@@ -15,9 +17,11 @@ import gputools
 # from gputools import OCLReductionKernel
 
 
-from focus_field_cylindrical import focus_field_cylindrical, focus_field_cylindrical_plane
-from focus_field_beam import focus_field_beam, focus_field_beam_plane
-from focus_field_lattice import focus_field_lattice, focus_field_lattice_plane
+from .focus_field_cylindrical import focus_field_cylindrical, focus_field_cylindrical_plane
+from .focus_field_beam import focus_field_beam, focus_field_beam_plane
+from .focus_field_lattice import focus_field_lattice, focus_field_lattice_plane
+from six.moves import range
+from six.moves import zip
 
 
 def absPath(myPath):
@@ -474,7 +478,7 @@ class Bpm3d(object):
 
         dn0 = 0
 
-        for i in xrange(Nz-1-offset):
+        for i in range(Nz-1-offset):
             if not self.dn is None and not free_prop:
                 if slow_mean:
                     if return_shape=="full":
@@ -495,7 +499,7 @@ class Bpm3d(object):
                         dn0 = self.dn_mean[i+offset]
                         self._fill_propagator(self.n0+dn0)
 
-            for j in xrange(self.simul_z):
+            for j in range(self.simul_z):
 
                 fft(self._buf_plane, inplace=True, plan=self._plan)
                 self._mult_complex(self._buf_plane, self._buf_H)
@@ -673,7 +677,7 @@ class Bpm3d(object):
             dn_mean_method = "none", "global", "local"
         """
 
-        print "mean method: ", dn_mean_method
+        print("mean method: ", dn_mean_method)
 
         free_prop = free_prop or (self.dn is None)
 
@@ -720,9 +724,9 @@ class Bpm3d(object):
 
         self._fill_propagator(self.n0)
 
-        for i in xrange(Nz-1):
+        for i in range(Nz-1):
 
-            for j in xrange(self.simul_z):
+            for j in range(self.simul_z):
                 fft(self._buf_plane, inplace=True, plan=self._plan)
                 self._mult_complex(self._buf_plane, self._buf_H)
                 fft(self._buf_plane, inplace=True, inverse=True, plan=self._plan)
@@ -743,7 +747,7 @@ class Bpm3d(object):
                     self._kernel_reduction(self.intens_g, self.intens_dn_g,
                                            outs=[self.intens_sum_g, self.intens_dn_sum_g])
                     self._fill_propagator_buf(self.n0, self.intens_dn_sum_g, self.intens_sum_g)
-                    print "mean dn: ",self.intens_dn_sum_g.get()/self.intens_sum_g.get()
+                    print("mean dn: ",self.intens_dn_sum_g.get()/self.intens_sum_g.get())
 
                 elif dn_mean_method=="global":
                     if self.dn_mean[i+dn_ind_start+dn_ind_offset]!=dn0:
@@ -789,7 +793,7 @@ class Bpm3d(object):
 
         cx, cy, cz = center
 
-        offset = self.shape[-1]/2+1+cz
+        offset = self.shape[-1]//2+1+cz
 
         u0 = np.roll(np.roll(self.u0_beam(zfoc=0., NA=NA,
                                           n_integration_steps=n_integration_steps), cy, 0), cx, 1)
@@ -815,13 +819,13 @@ class Bpm3d(object):
         Npad = int(np.floor(min(abs(cxs[1]-cxs[0]), abs(cys[1]-cys[0]))/32)*16)
         assert Npad>1
 
-        Nslice0 = (slice(self.simul_xy[1]/2-Npad, self.simul_xy[1]/2+Npad),
-                   slice(self.simul_xy[0]/2-Npad, self.simul_xy[0]/2+Npad))
+        Nslice0 = (slice(self.simul_xy[1]//2-Npad, self.simul_xy[1]//2+Npad),
+                   slice(self.simul_xy[0]//2-Npad, self.simul_xy[0]//2+Npad))
 
-        Nslices = [(slice(self.simul_xy[1]/2-Npad+cy, self.simul_xy[1]/2+Npad+cy),
-                    slice(self.simul_xy[0]/2-Npad+cx, self.simul_xy[0]/2+Npad+cx)) for cx, cy in zip(CXs, CYs)]
+        Nslices = [(slice(self.simul_xy[1]//2-Npad+cy, self.simul_xy[1]/2+Npad+cy),
+                    slice(self.simul_xy[0]//2-Npad+cx, self.simul_xy[0]/2+Npad+cx)) for cx, cy in zip(CXs, CYs)]
 
-        offset = self.shape[-1]/2+1+cz
+        offset = self.shape[-1]//2+1+cz
 
         u0_single = self.u0_beam(zfoc=0., NA=NA,
                                  n_integration_steps=n_integration_steps)
@@ -832,7 +836,7 @@ class Bpm3d(object):
 
         # u0 = reduce(np.add,[np.roll(np.roll(u0_single,cy,0),cx,1) for cx,cy in zip(Xs,Ys)])
 
-        print "propagation"
+        print("propagation")
         u_forth = self._propagate(u0=u0, offset=offset, return_shape="last")
 
         u_back = self._propagate(u0=u_forth.conjugate(), free_prop=True,
@@ -845,15 +849,15 @@ class Bpm3d(object):
 
         us = [u_back[nslice] for nslice in Nslices]
 
-        print "setup"
+        print("setup")
         from phasediv import aberr_from_field, PhaseDiv2
         self._PD2_pad = PhaseDiv2(us[0].shape, (self.dy, self.dx), NA=NA, n=self.n0)
 
         phis = []
         zerns = []
-        print "getting aberrations"
+        print("getting aberrations")
         for i, u0 in enumerate(us):
-            print "%s/%s"%(i+1, len(us))
+            print("%s/%s"%(i+1, len(us)))
             p, z = aberr_from_field(u0, units=(self.dx, self.dy),
                                     lam=self.lam, NA=NA, n=self.n0,
                                     pd_obj=self._PD2_pad,
@@ -900,7 +904,7 @@ if __name__=='__main__':
 
     t = time()
     u = m.propagate()
-    print time()-t
+    print(time()-t)
     # u = m._propagate_core(10,70,  u0 = m.u0_plane())
 
     # u = m._propagate_single()

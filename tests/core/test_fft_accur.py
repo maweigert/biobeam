@@ -1,5 +1,8 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from  gputools import OCLArray, fft, fft_plan
+from six.moves import range
 
 
 def get_np(N = 256, niter=100, sig = 1.):
@@ -44,13 +47,13 @@ def test_parseval():
 
     s1, s2 = [],[]
     for i in range(Nz):
-        print i
+        print(i)
         fft(d_g, inplace=True, fast_math=False)
         fft(d_g, inverse = True,inplace=True,fast_math=False)
         s1.append(np.sum(np.abs(d_g.get())**2))
 
     for i in range(Nz):
-        print i
+        print(i)
         d = np.fft.fftn(d).astype(np.complex64)
         d = np.fft.ifftn(d).astype(np.complex64)
         s2.append(np.sum(np.abs(d)**2))

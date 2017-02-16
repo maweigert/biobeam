@@ -7,6 +7,8 @@ Purnapatra, Subhajit B. Mondal, Partha P.
 Determination of electric field at and near the focus of a cylindrical lens for applications in fluorescence microscopy (2013)
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from gputools import OCLArray, OCLImage, OCLProgram
 import numpy as np
 import time
@@ -100,8 +102,8 @@ def focus_field_cylindrical(shape=(128, 128, 128),
                  ey_g.data,
                  ez_g.data,
                  u_g.data,
-                 np.float32(-dy*(Ny/2)), np.float32((Ny-1-Ny/2)*dy),
-                 np.float32(-dz*(Nz/2)), np.float32((Nz-1-Nz/2)*dz),
+                 np.float32(-dy*(Ny//2)), np.float32((Ny-1-Ny//2)*dy),
+                 np.float32(-dz*(Nz//2)), np.float32((Nz-1-Nz//2)*dz),
                  np.float32(lam/n0),
                  np.float32(alpha))
 
@@ -110,7 +112,7 @@ def focus_field_cylindrical(shape=(128, 128, 128),
     ey = np.array(np.repeat(ey_g.get()[..., np.newaxis], Nx, axis=-1))
     ez = np.array(np.repeat(ez_g.get()[..., np.newaxis], Nx, axis=-1))
 
-    print "time in secs:", time.time()-t
+    print("time in secs:", time.time()-t)
 
     if return_all_fields:
         return u, ex, ey, ez
@@ -189,7 +191,7 @@ def focus_field_cylindrical_plane(shape=(128, 128),
 
     p.run_kernel("psf_cylindrical_plane", (Nx, Ny), None,
                  ex_g.data,
-                 np.float32(-dy*(Ny/2)), np.float32((Ny-1-Ny/2)*dy),
+                 np.float32(-dy*(Ny//2)), np.float32((Ny-1-Ny//2)*dy),
                  np.float32(-z),
                  np.float32(lam/n0),
                  np.float32(alpha))
