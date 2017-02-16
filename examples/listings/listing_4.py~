@@ -28,7 +28,7 @@ dn, signal = create_dn_and_signal(offset = -51)
 #create a microscope simulator
 m = SimLSM_Cylindrical(dn = dn, signal = signal,
                        NA_illum= .1, NA_detect=.45,
-                       n_volumes=1,
+                       n_volumes=2,
                        size = (100,100,100), n0 = 1.33)
 
 image = m.simulate_image_z(cz=-20, psf_grid_dim=(16,16), conv_sub_blocks=(2,2))[16]

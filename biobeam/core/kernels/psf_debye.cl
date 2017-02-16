@@ -30,7 +30,7 @@ __kernel void debye_wolf(__global cfloat_t * Ex,
 						 const float x1,const float x2,
 						 const float y1,const float y2,
 						 const float z1,const float z2,
-						 const float lam,
+						 const float lam,const float n0,
 						 __constant float* alphas, const int Nalphas){
 
   int i = get_global_id(0);
@@ -46,8 +46,8 @@ __kernel void debye_wolf(__global cfloat_t * Ex,
   float z = z1+k*(z2-z1)/(Nz-1.f);
 
 
-  float kr = 2.f*M_PI/lam*sqrt(x*x+y*y);
-  float kz = 2.f*M_PI/lam*z;
+  float kr = 2.f*M_PI/lam*sqrt(x*x+y*y)*n0;
+  float kz = 2.f*M_PI/lam*z*n0;
 
   
   float phi = atan2(y,x); 

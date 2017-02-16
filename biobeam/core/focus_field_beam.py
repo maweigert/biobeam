@@ -124,7 +124,7 @@ def focus_field_beam(shape = (128,128,128),
                  np.float32(0.),np.float32(dx*(Nx-1.)),
                  np.float32(0.),np.float32(dy*(Ny-1.)),
                  np.float32(0.),np.float32(dz*(Nz-1.)),
-                 np.float32(1.*lam/n0),
+                 np.float32(lam), np.float32(n0),
                  alpha_g.data, np.int32(len(alphas)))
 
     u = u_g.get()
