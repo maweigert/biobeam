@@ -1,8 +1,10 @@
 import os
 from setuptools import setup, find_packages
 
+exec (open('biobeam/version.py').read())
+
 setup(name='biobeam',
-    version='0.1.2',
+    version=__version__,
     description='beam propagation',
     url='https://maweigert.github.io/biobeam',
     author='Martin Weigert',

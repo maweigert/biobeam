@@ -1,3 +1,4 @@
+from .version import __version__
 
 from biobeam.core import *
 from biobeam.simlsm import SimLSM_Cylindrical, SimLSM_DSLM
