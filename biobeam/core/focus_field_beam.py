@@ -118,7 +118,6 @@ def focus_field_beam(shape = (128,128,128),
 
     alpha_g = OCLArray.from_array(alphas.astype(np.float32))
 
-    t = time.time()
     
     p.run_kernel("debye_wolf",u_g.shape[::-1],None,
                  ex_g.data,ey_g.data,ez_g.data, u_g.data,
@@ -294,9 +293,10 @@ def test_debye():
     return u,u2
 
 if __name__ == '__main__':
-
-    ex_p = focus_field_beam_plane((128,)*2,(.1,)*2,
-                                   z = -6.4, NA = .3, n0 = 1.)
-
-    u1 = focus_field_beam((128,)*3, (0.1,)*3, lam=.5, NA = .4)
-
+    u1 = focus_field_beam((256,) * 3, (0.1,) * 3, lam=.5, NA=.6)
+    pass
+    # ex_p = focus_field_beam_plane((128,)*2,(.1,)*2,
+    #                                z = -6.4, NA = .3, n0 = 1.)
+    #
+    #u1 = focus_field_beam((128,)*3, (0.1,)*3, lam=.5, NA = .4)
+    #

@@ -5,10 +5,10 @@ taken from
 http://www.atnf.csiro.au/computing/software/gipsy/sub/bessel.c
  */
 
-#define ACC 40.0
+#define ACC 40.0f
 #define BIGNO 1.0e10
 #define BIGNI 1.0e-10
-#define M_PI 3.141592653589793
+#define M_PI 3.141592653589793f
 
 
 float bessel_j0( float x )
@@ -32,7 +32,7 @@ float bessel_j0( float x )
       ans2 = -0.1562499995e-1+y*(0.1430488765e-3
          +y*(-0.6911147651e-5+y*(0.7621095161e-6
          -y*0.934935152e-7)));
-      ans=sqrt(0.636619772/ax)*(cos(xx)*ans1-z*sin(xx)*ans2);
+      ans=sqrt(0.636619772f/ax)*(cos(xx)*ans1-z*sin(xx)*ans2);
    }
    return ans;
 }
@@ -58,7 +58,7 @@ float bessel_j1( float x )
       ans2=0.04687499995+y*(-0.2002690873e-3
          +y*(0.8449199096e-5+y*(-0.88228987e-6
          +y*0.105787412e-6)));
-      ans=sqrt(0.636619772/ax)*(cos(xx)*ans1-z*sin(xx)*ans2);
+      ans=sqrt(0.636619772f/ax)*(cos(xx)*ans1-z*sin(xx)*ans2);
       if (x < 0.0) ans = -ans;
    }
    return ans;
