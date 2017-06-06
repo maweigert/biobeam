@@ -41,7 +41,6 @@ from spimagine import read3dTiff
 
     u = m.propagate_illum(cz = -10.)
 
-    sys.exit()
     #h = m.psf((10.,0,0))
     #hs = m.psf_grid_z(10,grid_dim = (16,16), zslice = 16)
 
