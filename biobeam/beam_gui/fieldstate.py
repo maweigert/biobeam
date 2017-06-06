@@ -6,7 +6,10 @@ mweigert@mpi-cbg.de
 """
 
 from __future__ import absolute_import
-from PyQt4 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
+
 
 
 class FieldState(QtCore.QObject):
@@ -26,7 +29,7 @@ class CylindricalState(FieldState):
                                                description="cylindrical lens lightsheet",
                                                kwargs={"NA": NA,
                                                        "y": 0,
-                                                       "z": 0}
+                                                       "z": 0.}
                                                )
 
     def _get_input_field(self, m):
@@ -42,7 +45,7 @@ class BeamState(FieldState):
                                         description="gaussian bessel beam ",
                                         kwargs={"NA": NA,
                                                 "y": 0,
-                                                "z": 0}
+                                                "z": 0.}
                                         )
 
     def _get_input_field(self, m):
@@ -62,7 +65,7 @@ class LatticeState(FieldState):
                                                    "sigma": sigma,
                                                    "kpoints": kpoints,
                                                    "y": 0,
-                                                   "z": 0}
+                                                   "z": 0.}
                                            )
 
     def _get_input_field(self, m):

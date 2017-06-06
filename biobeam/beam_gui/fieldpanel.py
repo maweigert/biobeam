@@ -2,7 +2,9 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import numpy as np
-from PyQt4 import QtCore, QtGui, Qt
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
 import biobeam
 import logging
 import six
@@ -40,7 +42,7 @@ def createImgCheckBox(fName_active, fName_inactive):
     return checkBox
 
 
-class FieldPanel(QtGui.QWidget):
+class FieldPanel(QtWidgets.QWidget):
     """
         state.name defines the name
         state.kwargs defines the parameters
@@ -66,37 +68,37 @@ class FieldPanel(QtGui.QWidget):
         if self._state is None:
             return
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
-        gridBox = QtGui.QGridLayout()
+        gridBox = QtWidgets.QGridLayout()
 
-        gridBox.addWidget(QtGui.QLabel(self._description), 0, 0)
+        gridBox.addWidget(QtWidgets.QLabel(self._description), 0, 0)
 
         for i, (key, val) in enumerate(six.iteritems(self._state)):
             dtype = type(val)
             if dtype==bool:
-                check = QtGui.QCheckBox("", self)
+                check = QtWidgets.QCheckBox("", self)
                 check.stateChanged.connect(self.set_state_attr_check(check, key, val))
-                gridBox.addWidget(QtGui.QLabel(key), i+1, 0)
+                gridBox.addWidget(QtWidgets.QLabel(key), i+1, 0)
                 gridBox.addWidget(check, i+1, 1)
 
             elif dtype in (int, float, np.int, np.float):
-                edit = QtGui.QLineEdit(str(val))
+                edit = QtWidgets.QLineEdit(str(val))
                 edit.setValidator(QtGui.QDoubleValidator())
                 edit.returnPressed.connect(self.set_state_attr_edit_single(edit, key, dtype))
-                gridBox.addWidget(QtGui.QLabel(key), i+1, 0)
+                gridBox.addWidget(QtWidgets.QLabel(key), i+1, 0)
                 gridBox.addWidget(edit, i+1, 1)
             elif dtype in (list, tuple):
-                edit = QtGui.QLineEdit(",".join([str(v) for v in val]))
+                edit = QtWidgets.QLineEdit(",".join([str(v) for v in val]))
                 edit.returnPressed.connect(self.set_state_attr_edit_list(edit, key, dtype))
-                gridBox.addWidget(QtGui.QLabel(key), i+1, 0)
+                gridBox.addWidget(QtWidgets.QLabel(key), i+1, 0)
                 gridBox.addWidget(edit, i+1, 1)
 
         vbox.addLayout(gridBox)
         vbox.addStretch()
 
         self.setLayout(vbox)
-        self.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.setStyleSheet("""
         QFrame,QWidget,QLabel,QLineEdit {
         color: white;
@@ -132,7 +134,7 @@ class FieldPanel(QtGui.QWidget):
 
 if __name__=='__main__':
     from biobeam.beam_gui.fieldstate import CylindricalState, LatticeState
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     c = LatticeState()
 

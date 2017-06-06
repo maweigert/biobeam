@@ -9,7 +9,10 @@ from __future__ import absolute_import
 import sys
 import numpy as np
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
+
 from collections import OrderedDict
 from biobeam.beam_gui.beam_gui import BeamGui
 
@@ -17,10 +20,10 @@ _MAIN_APP = None
 
 
 def getCurrentApp():
-    app = QtGui.QApplication.instance()
+    app = QtWidgets.QApplication.instance()
 
     if not app:
-        app = QtGui.QApplication(sys.argv)
+        app = QtWidgets.QApplication(sys.argv)
 
     global _MAIN_APP
     _MAIN_APP = app
@@ -62,7 +65,23 @@ def qt_exec():
     getCurrentApp().exec_()
 
 
-if __name__=='__main__':
-    dn = np.random.uniform(0, .1, (128,)*3)
+def get_volume(N=256):
+    from gputools import perlin3
 
-    volbeam(dn, size=(40,)*3, simul_xy=(256,)*2, simul_z=2)
+    print("creating volume...")
+
+    _x = np.linspace(-1,1,N)
+    R = np.sqrt(np.sum([_X**2 for _X in np.meshgrid(_x,_x,_x,indexing = "ij")],axis =0))
+
+    dn = .1*(R<.2)
+    dn += .1*perlin3((N,)*3, scale = 4)
+
+    print("... done")
+
+    return dn
+
+
+if __name__=='__main__':
+    dn = get_volume(256)
+
+    volbeam(dn, size=(40,)*3, blocking = True)

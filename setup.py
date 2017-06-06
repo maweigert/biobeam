@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(name='biobeam',
-    version='0.1.1',
+    version='0.1.2',
     description='beam propagation',
     url='https://maweigert.github.io/biobeam',
     author='Martin Weigert',
