@@ -6,12 +6,15 @@ mweigert@mpi-cbg.de
 """
 
 from __future__ import absolute_import
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
+
 from biobeam.beam_gui.fieldpanel import FieldPanel
 from biobeam.beam_gui.fieldstate import CylindricalState, BeamState, LatticeState
 
 
-class FieldListPanel(QtGui.QWidget):
+class FieldListPanel(QtWidgets.QWidget):
     _stateChanged = QtCore.pyqtSignal(bool)
 
     def __init__(self):
@@ -22,13 +25,13 @@ class FieldListPanel(QtGui.QWidget):
 
     def initUI(self):
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
         self.fields = [CylindricalState(),
                        BeamState(),
                        LatticeState()]
 
-        self.combo = QtGui.QComboBox()
+        self.combo = QtWidgets.QComboBox()
 
         for field in self.fields:
             self.combo.addItem(field.name)
@@ -67,7 +70,7 @@ class FieldListPanel(QtGui.QWidget):
 if __name__=='__main__':
     import sys
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     win = FieldListPanel()
 

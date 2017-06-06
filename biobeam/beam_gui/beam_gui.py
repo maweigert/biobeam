@@ -16,13 +16,14 @@ from __future__ import print_function
 import os
 import numpy as np
 import sys
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
 from spimagine.gui.mainwidget import MainWidget
 from spimagine import NumpyData, DataModel, read3dTiff
 from biobeam.beam_gui.bpm3d_img import Bpm3d_img
 from biobeam.beam_gui.fieldlistpanel import FieldListPanel
-from .prop_panel import PropPanel
+from biobeam.beam_gui.prop_panel import PropPanel
 import logging
 from six.moves import zip
 
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class BeamGui(QtGui.QWidget):
+class BeamGui(QtWidgets.QWidget):
     def __init__(self, dn, size, simul_xy=None, simul_z=None, parent=None):
         super(BeamGui, self).__init__(parent)
 
@@ -50,12 +51,12 @@ class BeamGui(QtGui.QWidget):
 
         self.free_prop = True
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
         vbox.addWidget(self.prop_panel)
         vbox.addWidget(self.field_list_panel)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.canvas, stretch=3)
         hbox.addLayout(vbox)
 
@@ -223,7 +224,7 @@ if __name__=='__main__':
     else:
         dn = sphere_dn(128)
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     win = BeamGui(dn=dn, size=(100,)*3)
     # win = BeamGui(dn = dn, size = (50,50,25))

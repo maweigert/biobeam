@@ -6,11 +6,14 @@ mweigert@mpi-cbg.de
 """
 
 from __future__ import absolute_import
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
+
 from spimagine.gui.gui_utils import createStandardCheckbox
 
 
-class MyEdit(QtGui.QTextEdit):
+class MyEdit(QtWidgets.QTextEdit):
     returnPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent):
@@ -23,7 +26,7 @@ class MyEdit(QtGui.QTextEdit):
             super(MyEdit, self).keyPressEvent(e)
 
 
-class PropPanel(QtGui.QWidget):
+class PropPanel(QtWidgets.QWidget):
     _yposChanged = QtCore.pyqtSignal(int)
     _propChanged = QtCore.pyqtSignal(str)
 
@@ -39,13 +42,13 @@ class PropPanel(QtGui.QWidget):
 
         self.disp_dn = createStandardCheckbox(self)
 
-        gridBox = QtGui.QGridLayout()
+        gridBox = QtWidgets.QGridLayout()
         gridBox.addWidget(self.check_dn, 0, 0)
-        gridBox.addWidget(QtGui.QLabel("use dn"), 0, 1)
+        gridBox.addWidget(QtWidgets.QLabel("use dn"), 0, 1)
 
 
         gridBox.addWidget(self.disp_dn, 1, 0)
-        gridBox.addWidget(QtGui.QLabel("show dn"), 1, 1)
+        gridBox.addWidget(QtWidgets.QLabel("show dn"), 1, 1)
 
 
 
@@ -61,7 +64,7 @@ class PropPanel(QtGui.QWidget):
 if __name__=='__main__':
     import sys
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     win = PropPanel()
 
