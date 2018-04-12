@@ -32,8 +32,40 @@
             
   <div class="section" id="examples">
 <h1>8. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="focus-field-calculations">
+<h2>8.1. Focus field calculations<a class="headerlink" href="#focus-field-calculations" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#The following snippet calculates the 3d focus field (PSF) of a simple beam with NA = 0.8 (both scalar and vectorial):</span>
+
+<span class="kn">from</span> <span class="nn">biobeam</span> <span class="k">import</span> <span class="n">focus_field_beam</span>
+
+<span class="c1"># return the intensity</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">focus_field_beam</span><span class="p">(</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">256</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+               <span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">05</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+               <span class="n">NA</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">n0</span> <span class="o">=</span> <span class="mf">1.33</span><span class="p">)</span>
+
+<span class="c1"># return all the complex vector components</span>
+<span class="n">u2</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span><span class="n">ey</span><span class="p">,</span><span class="n">ez</span> <span class="o">=</span> <span class="n">focus_field_beam</span><span class="p">(</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">256</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+               <span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+       <span class="n">NA</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>
+               <span class="n">n0</span> <span class="o">=</span> <span class="mf">1.33</span><span class="p">,</span>
+               <span class="n">return_all_fields</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># vizualize</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">128</span><span class="p">],</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;hot&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;zy slice&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="o">...</span><span class="p">],</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;hot&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;xy slice&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/example_psf.png"><img alt="_images/example_psf.png" src="_images/example_psf.png" style="width: 500px;" /></a>
+</div>
+</div>
 <div class="section" id="plane-wave-scattered-by-sphere">
-<h2>8.1. Plane wave scattered by sphere<a class="headerlink" href="#plane-wave-scattered-by-sphere" title="Permalink to this headline">¶</a></h2>
+<h2>8.2. Plane wave scattered by sphere<a class="headerlink" href="#plane-wave-scattered-by-sphere" title="Permalink to this headline">¶</a></h2>
 <div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">biobeam</span> <span class="k">import</span> <span class="n">Bpm3d</span>
 <span class="c1"># create the refractive index difference</span>
 <span class="n">x</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
@@ -108,7 +140,8 @@
 <li class="toctree-l1"><a class="reference internal" href="forward_model.html">6. Simulating light sheet microscopy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="aberrations.html">7. Aberrations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">8. Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#plane-wave-scattered-by-sphere">8.1. Plane wave scattered by sphere</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#focus-field-calculations">8.1. Focus field calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plane-wave-scattered-by-sphere">8.2. Plane wave scattered by sphere</a></li>
 </ul>
 </li>
 </ul>
