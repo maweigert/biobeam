@@ -1,13 +1,8 @@
 Input Beam patterns 
 ===================
 
-On a slightly higher abstraction level biobeam allows to use pre-implemented as well as one-line user-definable beam geometries to be simulated. In the following we introduce the relevant function along with a detailed description of their parameters.
+To simulate the light field of an incident beam of given type through a given optical medium, the following functions provide the initial conditions of the complex field, which then are propagated through the medium: 
 
-.. figure:: _static/beams.png
-    :width: 600px
-    :align: left
-
-Some pre-define beam types.
 
 Gaussian/Bessel beams
 ---------------------
@@ -25,8 +20,8 @@ Gaussian/Bessel beams
 .. autofunction:: biobeam.focus_field_beam_plane
 
 
-Cylindrical Lens
-----------------
+Cylindrical light sheet
+-----------------------
 
 .. image:: _static/pupil_cylinder.png
     :width: 100px

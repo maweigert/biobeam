@@ -1,9 +1,12 @@
-Focus field calculations
-========================
+Focus field (PSF) calculations
+==============================
 
 The free space focus field (PSF) arising from a given back pupil aperture function can be calculated via the Debye diffraction integral.
 *biobeam* can evaluate the diffraction integral for a variety of aperture functions directly on the GPU and thus can calculate the 3D PSF (both scalar and vectorial) extremely fast.   
 
+.. figure:: _static/beams.png
+    :width: 600px
+    :align: left
 
 
 Gaussian/Bessel beams
@@ -22,8 +25,8 @@ Gaussian/Bessel beams
 .. autofunction:: biobeam.focus_field_beam
 
 
-Cylindrical Lens
-----------------
+Cylindrical Light sheet
+-----------------------
 
 .. image:: _static/pupil_cylinder.png
     :width: 100px

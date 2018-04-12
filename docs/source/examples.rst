@@ -8,17 +8,18 @@ Plane wave scattered by sphere
 
 .. code:: python
 
+    from biobeam import Bpm3d
     # create the refractive index difference
     x = 0.1 * np.arange(-128,128)
     Z, Y, X = np.meshgrid(x,x,x,indexing = "ij")
-    R = np.sqrt(X**1+Y**2+Z**2)
+    R = np.sqrt(X**2+Y**2+Z**2)
     dn = 0.05*(R<2.)
 
     # create the computational geometry
     m = Bpm3d(dn = dn, units = (0.1,0.1,0.1), lam = 0.5)
 
     # propagate a plane wave and return the intensity
-    u = m._propagate()
+    u = m._propagate(return_comp = "intens")
 
     # vizualize
     import matplotlib.pyplot as plt
@@ -29,6 +30,12 @@ Plane wave scattered by sphere
     plt.imshow(u[128,...], cmap = "hot")
     plt.title("xy slice")
 
+
+.. figure:: _static/example_sphere.png
+   :width: 500px
+   :align: center
+
+		   
 
 
 ..

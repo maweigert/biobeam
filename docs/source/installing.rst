@@ -4,9 +4,9 @@ Installation
 Requirements
 ------------
 
-* Python 2.+
+* Python 2.7/3.5+
 * a working OpenCL environment
-
+* a sufficiently modern GPU (>2GB memory)
 
 *Mac*
 
@@ -41,7 +41,7 @@ A simple
 
 ::
 
-   pip install biobeam
+   pip(2|3) install biobeam
 
 should be enough to get you the package.
 
@@ -51,4 +51,4 @@ To nicely render the 3d output just install the OpenCL accelerated renderer `Spi
 
 ::
 
-   pip install spimagine
+   pip(2|3) install spimagine
