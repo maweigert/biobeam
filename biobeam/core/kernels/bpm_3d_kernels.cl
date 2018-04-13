@@ -141,7 +141,7 @@ __kernel void mult_dn_local(__global cfloat_t* input,
 					  __global float* dn,
 					  const float unit_k,
 					  __constant float * buf_g_sum,
-					  __constant  float * buf_dng_sum,
+					  __global  float * buf_dng_sum,
 					  const int offset,
 					  __global float * buf_sum1,
 					  __global float * buf_sum2){
@@ -151,7 +151,9 @@ __kernel void mult_dn_local(__global cfloat_t* input,
   int Nx = get_global_size(0);
   int Ny = get_global_size(1);
 
-  float dn0 = buf_dng_sum[i+Nx*j]/(buf_g_sum[i+Nx*j]+1.e-17f);
+
+  //float dn0 = buf_dng_sum[i+Nx*j]/(buf_g_sum[i+Nx*j]+1.e-10f);
+  float dn0 = buf_dng_sum[0]/(buf_g_sum[0]+1.e-12f);
 
 
 
@@ -159,8 +161,6 @@ __kernel void mult_dn_local(__global cfloat_t* input,
   float dnDiff = unit_k*(dn_val-dn0);
 
 
-  //if ((i+j)==0)
-    //printf("dn0: %.6f %d %d\n",dnDiff,i,j);
 
   // int distx = min(Nx-i-1,i);
   // int disty = min(Ny-j-1,j);
@@ -170,13 +170,24 @@ __kernel void mult_dn_local(__global cfloat_t* input,
 
   cfloat_t dPhase = cfloat_new(cos(dnDiff),sin(dnDiff));
 
+
+  //if ((i+j)==0)
+  //  printf("kern: %.6f %.6f\n",dPhase.x,dn0);
+
   cfloat_t res = cfloat_mul(input[i+Nx*j],dPhase);
+
 
   input[i+Nx*j] = res;
 
+
+
   float sum1 = cfloat_abs(res);
+
+
   buf_sum1[i+Nx*j] = sum1*sum1;
   buf_sum2[i+Nx*j] = sum1*sum1*dn_val;
+
+
 
 }
 
@@ -240,9 +251,8 @@ __kernel void mult_dn_image_local(__global cfloat_t* plane,
   uint Nx = get_global_size(0);
   uint Ny = get_global_size(1);
 
-float dn0 = buf_dng_sum[i+Nx*j]/buf_g_sum[i+Nx*j];
+  float dn0 = buf_dng_sum[0]/(buf_g_sum[0]+1.e-12f);
   float dn_val = read_imagef(dn, sampler, (float4)(1.f*i/(Nx-1.f),1.f*j/(Ny-1.f),zpos,0)).x;
-
 
   float dnDiff = unit_k*(dn_val-dn0);
 
@@ -342,9 +352,10 @@ __kernel void compute_propagator_buf(__global cfloat_t* H,
   float ky = 2.f*M_PI*FFTFREQ(j,Ny,dy);
 
 
-  float n00 = n0+sum_dn_intens[0]/sum_intens[0];
+  float n00 = n0+sum_dn_intens[0]/(sum_intens[0]+1.e-16);
 
 
+    
   float tmp = n00*n00*k0*k0-kx*kx-ky*ky;
 
   float root = (tmp>=0.f)?sqrt(tmp):sqrt(-tmp);

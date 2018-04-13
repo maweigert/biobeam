@@ -8,6 +8,8 @@ mweigert@mpi-cbg.de
 from biobeam import SimLSM_Cylinder
 from spimagine import read3dTiff
 
+if __name__ == '__main__':
+
     #dn = read3dTiff("/Users/mweigert/python/bpm_projects/forward_model/data/sample_elegans_512.tif")
     #dn = dn.transpose(0,2,1).copy()
     #signal = 1.*dn.real

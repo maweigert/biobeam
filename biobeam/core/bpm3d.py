@@ -277,6 +277,7 @@ class Bpm3d(object):
                                              np.int32(zPos*Nx*Ny))
 
     def _mult_dn_local(self, buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2):
+
         if (self._is_subsampled and self.dn.dtype==Bpm3d._complex_type) or \
                 (not self._is_subsampled and self._buf_dn.dtype==Bpm3d._complex_type):
             self._mult_dn_complex_local(buf, zPos, buf_g_sum, buf_dng_sum, buf_sum1, buf_sum2)
@@ -532,7 +533,7 @@ class Bpm3d(object):
             free_prop = False | True
             dn_mean_method = "none", "global", "local"
         """
-
+        
         if offset<0 or offset>=self.shape[-1]:
             raise ValueError("offset = %s has to be between 0 and %s"%(offset, self.shape[-1]))
 
@@ -717,9 +718,10 @@ class Bpm3d(object):
 
         if dn_mean_method=="local" and not self.dn is None and not free_prop:
             self.intens_sum_g = OCLArray.from_array(np.ones(1,dtype=Bpm3d._real_type))
-            self.intens_dn_sum_g = OCLArray.from_array(self.dn_mean[dn_ind_start+dn_ind_offset]*
-                                                       np.ones(1,dtype=Bpm3d._real_type))
+            self.intens_dn_sum_g = OCLArray.from_array((self.dn_mean[dn_ind_start+dn_ind_offset]*
+                                                       np.ones(1)).astype(dtype=Bpm3d._real_type))
             #self._fill_propagator_buf(self.n0, self.intens_dn_sum_g, self.intens_sum_g)
+
 
 
         self._fill_propagator(self.n0)
@@ -727,9 +729,17 @@ class Bpm3d(object):
         for i in range(Nz-1):
 
             for j in range(self.simul_z):
+
+
                 fft(self._buf_plane, inplace=True, plan=self._plan)
+
                 self._mult_complex(self._buf_plane, self._buf_H)
+
+
+
                 fft(self._buf_plane, inplace=True, inverse=True, plan=self._plan)
+
+
                 if not free_prop:
                     #FIXME here we make  a slight error for the first time point, as we
                     #FIXME set dn0 first and the compute the new propagator
@@ -739,15 +749,25 @@ class Bpm3d(object):
                                             self.intens_dn_sum_g,
                                             self.intens_g,
                                             self.intens_dn_g)
+
+
                     else:
                         self._mult_dn(self._buf_plane, (i+dn_ind_start+(j+1.)/self.simul_z), dn0)
+
+
 
             if not self.dn is None and not free_prop:
                 if dn_mean_method=="local":
                     self._kernel_reduction(self.intens_g, self.intens_dn_g,
                                            outs=[self.intens_sum_g, self.intens_dn_sum_g])
+
+
+
                     self._fill_propagator_buf(self.n0, self.intens_dn_sum_g, self.intens_sum_g)
-                    print("mean dn: ",self.intens_dn_sum_g.get()/self.intens_sum_g.get())
+
+
+                    #print(self.intens_dn_sum_g.get(), self.n0)
+                    #print("mean dn: ",self.intens_dn_sum_g.get()/self.intens_sum_g.get())
 
                 elif dn_mean_method=="global":
                     if self.dn_mean[i+dn_ind_start+dn_ind_offset]!=dn0:
@@ -773,6 +793,8 @@ class Bpm3d(object):
             self._PD2 = PhaseDiv2(self.simul_xy[::-1], (self.dy, self.dx), NA=NA, n=self.n0)
             self._NA = NA
         assert self._NA==NA
+
+
         return aberr_from_field(u0, units=(self.dx, self.dy),
                                 lam=self.lam, NA=NA, n=self.n0,
                                 pd_obj=self._PD2,
@@ -785,7 +807,8 @@ class Bpm3d(object):
                                 n_zern=n_zern)
 
     def aberr_at(self, NA=.4, center=(0, 0, 0), n_zern=20,
-                 n_integration_steps=200):
+                 n_integration_steps=200,
+                 prop_kwargs={}):
         """c = (cx,cy,cz) in relative pixel coordinates wrt the center
 
         returns phi, zern
@@ -798,10 +821,11 @@ class Bpm3d(object):
         u0 = np.roll(np.roll(self.u0_beam(zfoc=0., NA=NA,
                                           n_integration_steps=n_integration_steps), cy, 0), cx, 1)
 
-        u_forth = self.propagate(u0=u0, offset=offset, return_shape="last")
+        u_forth = self.propagate(u0=u0, offset=offset, return_shape="last",**prop_kwargs)
 
         u_back = self.propagate(u0=u_forth.conjugate(), free_prop=True,
-                                offset=offset, return_shape="last")
+                                offset=offset, return_shape="last",
+                                **prop_kwargs)
         u_back = np.roll(np.roll(u_back, -cy, 0), -cx, 1)
 
         self._u_back = u_back

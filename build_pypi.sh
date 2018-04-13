@@ -1,9 +1,7 @@
-rm dist/* build/*
+#clean up old dists
+rm dist/*
 
-python setup.py sdist bdist_wheel
+python2 setup.py bdist_wheel
+python3 setup.py bdist_wheel
 
-#python setup.py register -r pypitest
-#twine upload -r pypitest dist/biobeam*
-
-python setup.py register
-twine upload dist/biobeam*
+twine upload dist/*whl

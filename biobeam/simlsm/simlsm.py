@@ -49,6 +49,7 @@ class SimLSM_Base(object):
 
 
 
+
         self.dn = dn
         self.signal  = signal
 
@@ -138,6 +139,7 @@ class SimLSM_Base(object):
         c = [0,10,-10] relative to center in microns
         c = [cz,cy,cx]
         """
+
         u0 = np.roll(np.roll(self.u0_detect,int(np.round(c[1]/self._bpm_detect.dy)),axis=0),
                      np.round(int(c[2]/self._bpm_detect.dx)),axis=1)
 
@@ -145,6 +147,7 @@ class SimLSM_Base(object):
         offset_z = int(np.round(c[0]/self._bpm_detect.units[-1]))
 
 
+        
         u1 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz//2+offset_z,
                                         return_shape="last",**bpm_kwargs)
 
@@ -152,7 +155,8 @@ class SimLSM_Base(object):
         u2 = self._bpm_detect.propagate(u0 = u1.conjugate(),
                                        free_prop=True,
                                        #offset=Nz//2+c[0],
-                                       return_shape="full",return_comp="intens",
+                                       return_shape="full",
+                                        return_comp="intens",
                                         **bpm_kwargs)[::-1]
 
         if with_sheet:
@@ -189,7 +193,7 @@ class SimLSM_Base(object):
         ys = np.round([-self._bpm_detect.simul_xy[1]//2+n*Nb_y+Nb_y//2 for n in range(n_y)]).astype(np.int)
 
         # this is expensive, so memoize it if we use it several times after
-        if self._last_grid_u0.grid_dim == grid_dim:
+        if self._last_grid_u0.grid_dim == grid_dim and False:
             print("using saved grid")
             u0 = self._last_grid_u0.u0
         else:
@@ -226,6 +230,67 @@ class SimLSM_Base(object):
             u = np.roll(u,-offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice]
             #u = np.roll(u,offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice][::-1]
             return u
+
+
+    def psf_grid_z_stepped(self, cz = 0,
+                           grid_dim = (4,4),
+                           zslice = 16,
+                            with_sheet = False,
+                           step = (1,1),
+                           offset = (0,0),
+                            **bpm_kwargs):
+        """cz in microns relative to the center
+        """
+
+        print("computing psf grid %s..."%(str(grid_dim)))
+
+
+        offset_z = int(np.round(cz/self._bpm_detect.units[-1]))
+
+
+
+        n_y, n_x = grid_dim
+        Nb_x, Nb_y = self._bpm_detect.simul_xy[0]/n_x, self._bpm_detect.simul_xy[1]/n_y
+
+        # get the offset positions
+        xs = np.round([-self._bpm_detect.simul_xy[0]//2+n*Nb_x+Nb_x//2 for n in range(offset[1], n_x,step[1])]).astype(np.int)
+        ys = np.round([-self._bpm_detect.simul_xy[1]//2+n*Nb_y+Nb_y//2 for n in range(offset[0], n_y,step[0])]).astype(np.int)
+
+
+        #u0 = np.sum([np.roll(np.sum([np.roll(self.u0_detect,_y,axis=0) for _y in ys],axis=0),_x, axis=1) for _x in xs],axis=0)
+
+        u0_y = reduce(np.add,[np.roll(self.u0_detect,_y,axis=0) for _y in ys])
+        u0 = reduce(np.add,[np.roll(u0_y,_x,axis=1) for _x in xs])
+
+        self._last_grid_u0 = self._GridSaveObject(grid_dim,u0)
+
+
+        u0 = self._bpm_detect.propagate(u0 = u0, offset=self.Nz//2+offset_z,
+                                        return_shape="last",
+                                        return_comp="field",
+                                        **bpm_kwargs)
+
+        bpm_kwargs.update({"free_prop":True})
+
+        #refocus
+        u = self._bpm_detect.propagate(u0 = u0.conjugate(),
+                                       #offset=Nz//2+c[0],
+                                       return_shape="full",
+                                       return_comp="intens",
+                                       **bpm_kwargs)[::-1]
+
+        if with_sheet:
+            sheet = self.propagate_illum(cz, **bpm_kwargs)
+            u *= sheet
+
+
+        if zslice is None:
+            return u
+        else:
+            u = np.roll(u,-offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice]
+            #u = np.roll(u,offset_z,axis=0)[self.Nz//2-zslice:self.Nz//2+zslice][::-1]
+            return u
+
 
 
     def simulate_image_z(self, cz = 0,
@@ -279,6 +344,7 @@ class SimLSM_Base(object):
 
         print("spatially varying convolution: %s %s"%(signal.shape,psfs.shape))
         #convolve
+
         conv = convolve_spatial3(signal.copy(), psfs.copy(),
                                  grid_dim = (1,)+psf_grid_dim,
                                  sub_blocks=(1,)+conv_sub_blocks,
