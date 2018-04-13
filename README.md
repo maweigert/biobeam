@@ -1,4 +1,4 @@
-#biobeam - Fast simulation of image formation for in-silico tissue microscopy
+# biobeam - Fast simulation of image formation for in-silico tissue microscopy
 
 <img src="https://github.com/maweigert/biobeam/raw/master/artwork/logo_biobeam_red.png" width="200">
 
@@ -10,7 +10,7 @@ Among the features are
 * Fast scalar wave optical simulation of incident light interaction with weakly scattering tissue 
 * Simulation module for image formation in light sheet microscopy and aberration calculations
 
-###Quickstart
+### Quickstart
 
 First make sure there is a valid OpenCL platform available on your machine, e.g. check with 
 
