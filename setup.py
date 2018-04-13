@@ -5,7 +5,7 @@ exec (open('biobeam/version.py').read())
 
 setup(name='biobeam',
     version=__version__,
-    description='beam propagation',
+    description='GPU accelerated light propagation tools',
     url='https://maweigert.github.io/biobeam',
     author='Martin Weigert',
     author_email='mweigert@mpi-cbg.de',
