@@ -9,7 +9,7 @@
     <title>5. Input Beam patterns &#8212; biobeam 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -93,7 +93,8 @@ beating double bessel beam…</li>
 <dl class="function">
 <dt id="biobeam.focus_field_cylindrical_plane">
 <code class="descclassname">biobeam.</code><code class="descname">focus_field_cylindrical_plane</code><span class="sig-paren">(</span><em>shape=(128</em>, <em>128)</em>, <em>units=(0.1</em>, <em>0.1)</em>, <em>z=0.0</em>, <em>lam=0.5</em>, <em>NA=0.3</em>, <em>n0=1.0</em>, <em>ex_g=None</em>, <em>n_integration_steps=200</em><span class="sig-paren">)</span><a class="headerlink" href="#biobeam.focus_field_cylindrical_plane" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculates the complex 2d input field at position -z of a      perfect, aberration free optical system</p>
+<dd><p>calculates the complex 2d input field at position -z of a      for a perfect, aberration free cylindrical lens after
+x polarized illumination via the vectorial debye diffraction integral.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -104,12 +105,7 @@ beating double bessel beam…</li>
 <li><strong>z</strong> (<em>float</em>) – defocus position in microns, such that the beam would focus at z
 e.g. an input field with z = 10. would hav its focus spot after 10 microns</li>
 <li><strong>lam</strong> (<em>float</em>) – the wavelength of light used in microns</li>
-<li><strong>NA</strong> (<em>float/list</em>) – the numerical aperture(s) of the illumination objective
-that is either a single number (for gaussian beams) or an
-even length list of NAs (for bessel beams), e.g.
-NA = [0.5,0.55] lets light through the annulus 0.5&lt;0.55 (making a bessel beam ) or
-NA = [0.1,0.2,0.5,0.6] lets light through the annulus 0.1&lt;0.2 and 0.5&lt;0.6 making a
-beating double bessel beam…</li>
+<li><strong>NA</strong> (<em>float</em>) – the numerical aperture of the lens</li>
 <li><strong>n0</strong> (<em>float</em>) – the refractive index of the medium</li>
 <li><strong>n_integration_steps</strong> (<em>int</em>) – number of integration steps to perform</li>
 </ul>
@@ -125,7 +121,7 @@ beating double bessel beam…</li>
 </table>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># the input pattern of a bessel beam that will focus after 4 microns</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span> <span class="o">=</span> <span class="n">focus_field_cylindrical_plane</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="n">z</span> <span class="o">=</span> <span class="mf">4.</span><span class="p">,</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span> <span class="o">=</span> <span class="n">focus_field_cylindrical_plane</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="n">z</span> <span class="o">=</span> <span class="mf">4.</span><span class="p">,</span> <span class="n">lam</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">NA</span> <span class="o">=</span> <span class="o">.</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition seealso">
@@ -267,7 +263,7 @@ e.g. an input field with z = 10. would have its focal spot after 10 microns</li>
       &copy;2018, Martin Weigert.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
