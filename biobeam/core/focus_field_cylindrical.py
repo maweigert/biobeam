@@ -127,8 +127,11 @@ def focus_field_cylindrical_plane(shape=(128, 128),
                                   NA=.3, n0=1.,
                                   ex_g=None,
                                   n_integration_steps=200):
+
     """calculates the complex 2d input field at position -z of a \
-     perfect, aberration free optical system
+     for a perfect, aberration free cylindrical lens after
+    x polarized illumination via the vectorial debye diffraction integral.
+    
 
 
     Parameters
@@ -142,13 +145,8 @@ def focus_field_cylindrical_plane(shape=(128, 128),
         e.g. an input field with z = 10. would hav its focus spot after 10 microns
     lam: float
         the wavelength of light used in microns
-    NA: float/list
-        the numerical aperture(s) of the illumination objective
-        that is either a single number (for gaussian beams) or an
-        even length list of NAs (for bessel beams), e.g.
-        NA = [0.5,0.55] lets light through the annulus 0.5<0.55 (making a bessel beam ) or
-        NA = [0.1,0.2,0.5,0.6] lets light through the annulus 0.1<0.2 and 0.5<0.6 making a
-        beating double bessel beam...
+    NA: float
+        the numerical aperture of the lens
     n0: float
         the refractive index of the medium
     n_integration_steps: int
@@ -164,7 +162,7 @@ def focus_field_cylindrical_plane(shape=(128, 128),
     -------
 
     >>> # the input pattern of a bessel beam that will focus after 4 microns
-    >>> ex = focus_field_cylindrical_plane((256,256), (0.1,0.1), z = 4., lam=.5, NA = (.4,.5))
+    >>> ex = focus_field_cylindrical_plane((256,256), (0.1,0.1), z = 4., lam=.5, NA = .4)
 
     See Also
     --------
