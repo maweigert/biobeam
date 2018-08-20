@@ -11,7 +11,7 @@ http://www.atnf.csiro.au/computing/software/gipsy/sub/bessel.c
 #define M_PI 3.141592653589793f
 
 
-float bessel_j0( float x )
+inline float bessel_j0( float x )
 {
    float ax,z;
    float xx,y,ans,ans1,ans2;
@@ -37,7 +37,7 @@ float bessel_j0( float x )
    return ans;
 }
 
-float bessel_j1( float x )
+inline float bessel_j1( float x )
 {
    float ax,z;
    float xx,y,ans,ans1,ans2;
@@ -65,7 +65,7 @@ float bessel_j1( float x )
 }
 
 
-float bessel_jn( int n, float x )
+inline float bessel_jn( int n, float x )
 {
    int    j, jsum, m;
    float ax, bj, bjm, bjp, sum, tox, ans;
