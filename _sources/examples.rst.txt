@@ -33,6 +33,7 @@ Focus field calculations
    plt.subplot(1,2,2)
    plt.imshow(u[N//2,...], cmap = "hot")
    plt.title("xy slice")
+   plt.show()
 
 .. figure:: _static/example_psf.png
    :width: 500px
@@ -44,12 +45,15 @@ Plane wave scattered by sphere
 
 .. code:: python
 
+
     from biobeam import Bpm3d
+    import numpy as np
+    
     # create the refractive index difference
     N = 512
     dx = 0.1
     r = 4
-    x = dx*(np.arange(N)-N//2)	
+    x = dx*(np.arange(N)-N//2)  
     Z, Y, X = np.meshgrid(x,x,x,indexing = "ij")
     R = np.sqrt(X**2+Y**2+Z**2)
     dn = 0.05*(R<2.)
@@ -68,7 +72,7 @@ Plane wave scattered by sphere
     plt.subplot(1,2,2)
     plt.imshow(u[N//2,...], cmap = "hot")
     plt.title("xy slice")
-
+    plt.show()
 
 .. figure:: _static/example_sphere.png
    :width: 500px
